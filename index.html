@@ -262,6 +262,37 @@ tr.open td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .rs-score{font-weight:800;font-size:16px}
 .restable td:first-child small{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+/* Alerts */
+.alerts{margin:0 20px}
+.alert{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 16px;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:14px;font-weight:600;background:var(--waitbg);border-left:4px solid var(--accent)}
+.alert.err{background:var(--downbg);border-left-color:var(--down)}
+.alert.good{background:var(--upbg);border-left-color:var(--up)}
+.alert-act{display:flex;gap:14px}
+.newslabel{font-size:12px;color:var(--muted);margin:6px 0 0}
+.histline{font-size:13px;color:var(--muted);margin-top:4px}
+.hero-actions{align-items:center}
+/* Trades */
+.jbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+.jh{font-size:17px;font-weight:800;font-stretch:85%;margin:18px 0 8px}
+.jtable{width:100%;border-collapse:collapse;min-width:860px}
+.jtable th,.jtable td{padding:9px 10px;border-bottom:1px solid var(--rule);text-align:right;font-size:14px;vertical-align:top}
+.jtable th{background:var(--paper);font-size:12px;color:var(--muted);font-weight:700}
+.jtable th:first-child,.jtable td:first-child{text-align:left}
+.jtable small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.jtable tr.flag td{background:var(--waitbg)}
+.jtable .acts{white-space:nowrap}
+.jtable .acts .linkbtn{margin-left:10px}
+.dims{display:grid;gap:14px}
+.dim-h{font-weight:700;font-size:14px;margin-bottom:4px}
+.dim-row{display:grid;grid-template-columns:minmax(0,1.3fr) 90px minmax(0,1fr);gap:10px;align-items:center;font-size:13px;padding:3px 0}
+.dim-bar{height:6px;border-radius:3px;background:var(--rule);overflow:hidden}
+.dim-bar i{display:block;height:100%}
+.dim-v{text-align:right}
+@media (max-width:560px){.dim-row{grid-template-columns:1fr;gap:2px}.dim-v{text-align:left}}
+.sug{padding:10px 12px;border-radius:8px;background:var(--paper);margin-bottom:10px}
+.sug p{margin:0 0 8px;font-size:14px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 14px}
+
 /* Onboarding + dialogs */
 .onboard{max-width:720px}
 .onboard h2{font-size:30px;font-weight:800;font-stretch:75%;margin-bottom:8px}
@@ -301,6 +332,7 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
   <div class="tabs" role="tablist" aria-label="Views">
     <button class="tab" role="tab" id="tabDash" aria-selected="true" type="button">Dashboard</button>
     <button class="tab" role="tab" id="tabRes" aria-selected="false" type="button">Scan Results</button>
+    <button class="tab" role="tab" id="tabTrades" aria-selected="false" type="button">My Trades</button>
     <button class="tab" role="tab" id="tabSec" aria-selected="false" type="button">Sectors</button>
   </div>
   <div class="status" aria-live="polite">
@@ -316,6 +348,7 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
   </div>
 </header>
 <div id="notice" class="notice" role="status" hidden></div>
+<div id="alerts" class="alerts" aria-live="polite"></div>
 
 <div class="wrap">
   <!-- Onboarding -->
@@ -397,7 +430,8 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
               <div class="price" id="hPrice"></div>
               <div class="chg" id="hChg"></div>
               <div class="earnline" id="hEarn"></div>
-              <div class="hero-actions"><button class="linkbtn" id="btnWatch" type="button"></button></div>
+              <div class="histline" id="hHist"></div>
+              <div class="hero-actions"><button class="btn small" id="btnLogBuy" type="button">Log a purchase</button><button class="linkbtn" id="btnWatch" type="button"></button></div>
             </div>
           </div>
 
@@ -459,7 +493,7 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
         <label>Sort <select id="fSort">
           <option value="score_desc">Score: best first</option><option value="score_asc">Score: worst first</option>
           <option value="ai">AI verdict</option><option value="move">Biggest movers today</option>
-          <option value="m1">1-month performance</option><option value="rr">Reward to risk</option>
+          <option value="m1">1-month performance</option><option value="y1">1-year performance</option><option value="rr">Reward to risk</option>
           <option value="earn">Soonest earnings</option><option value="alpha">A to Z</option></select></label>
         <label>Verdict <select id="fVerdict"><option value="all">All</option><option value="buy">Good buy</option><option value="wait">I would wait</option><option value="not">Not a good buy</option></select></label>
         <label>AI verdict <select id="fAI"><option value="all">All</option><option value="good_buy">Good buy</option><option value="wait">I would wait</option><option value="not_good">Not a good buy</option><option value="none">Not scanned</option></select></label>
@@ -478,6 +512,28 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
     </section>
   </div>
 
+  <!-- My Trades -->
+  <div id="viewTrades" hidden>
+    <section class="card">
+      <div class="sec-intro"><h2>My trades</h2><span class="muted" id="syncStatus"></span></div>
+      <div class="jbar">
+        <button class="btn primary" id="btnLogTrade" type="button">Log a trade</button>
+        <button class="btn" id="btnReview" type="button">Review my trades with AI</button>
+        <button class="btn small" id="btnTradesCsv" type="button" style="margin-left:auto">Download spreadsheet (CSV)</button>
+      </div>
+      <div class="stats" id="jStats" style="margin-bottom:22px"></div>
+      <h3 class="jh">Open trades</h3>
+      <div class="tablewrap" id="jOpen"></div>
+      <h3 class="jh">Closed trades</h3>
+      <div class="tablewrap" id="jClosed"></div>
+      <div class="cols" style="margin-top:26px">
+        <div class="panel"><h3>What your trades show</h3><p class="hint" style="margin-top:0">Win rate and average return, grouped by the conditions when you bought.</p><div id="jInsights"></div></div>
+        <div class="panel"><h3>Suggested rule changes</h3><div id="jSuggest"></div>
+          <h3 style="margin-top:22px">AI review</h3><div id="jReview"></div><p class="hint">A review costs a few cents. The AI looks for patterns in your trades and the news around them.</p></div>
+      </div>
+    </section>
+  </div>
+
   <!-- Sectors -->
   <div id="viewSec" hidden>
     <section class="card">
@@ -490,6 +546,34 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
 
 <footer>Swing Desk is a personal screening tool. Scores, verdicts and AI opinions can be wrong; nothing here is financial advice. Free data may be delayed.</footer>
 
+<dialog id="dlgTrade" aria-labelledby="tdTitle">
+  <div class="dlg-head"><h2 id="tdTitle">Log a trade</h2><button class="btn" type="button" data-close>Close</button></div>
+  <div class="dlg-body">
+    <div class="tgrid">
+      <div class="field"><label for="tSym">Ticker</label><input id="tSym" type="text" autocomplete="off" spellcheck="false" style="text-transform:uppercase" placeholder="e.g. AAPL"></div>
+      <div class="field"><label for="tBuyAt">Date and time you bought</label><input id="tBuyAt" type="datetime-local"></div>
+      <div class="field"><label for="tBuyPx">Price per share ($)</label><input id="tBuyPx" type="number" min="0" step="0.01" inputmode="decimal"></div>
+      <div class="field"><label for="tAmt">Amount invested ($)</label><input id="tAmt" type="number" min="0" step="1" inputmode="decimal"></div>
+      <div class="field"><label for="tStop">Stop price ($)</label><input id="tStop" type="number" min="0" step="0.01" inputmode="decimal"></div>
+      <div class="field"><label for="tTarget">Target price ($)</label><input id="tTarget" type="number" min="0" step="0.01" inputmode="decimal"></div>
+    </div>
+    <p class="hint" id="tSugg" style="margin-top:-6px"></p>
+    <div class="field"><label for="tNote">Note (optional)</label><input id="tNote" type="text" placeholder="Why you bought it"></div>
+    <button class="linkbtn" type="button" id="tAddSell">Add the sale</button>
+    <div id="tSellBox" hidden>
+      <div class="tgrid">
+        <div class="field"><label for="tSellAt">Date and time you sold</label><input id="tSellAt" type="datetime-local"></div>
+        <div class="field"><label for="tSellPx">Sale price per share ($)</label><input id="tSellPx" type="number" min="0" step="0.01" inputmode="decimal"></div>
+      </div>
+    </div>
+    <p class="down" id="tErr" style="font-size:14px;min-height:1em"></p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <button class="btn primary" type="button" id="tSave">Save trade</button>
+      <button class="btn" type="button" id="tDelete" style="margin-left:auto">Delete trade</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="dlgSettings" aria-labelledby="setTitle">
   <div class="dlg-head"><h2 id="setTitle">Settings</h2><button class="btn" type="button" data-close>Close</button></div>
   <div class="dlg-body">
@@ -497,6 +581,10 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
       <div class="field"><label for="setTd">Twelve Data key</label><div class="inline"><input id="setTd" type="password" autocomplete="off" spellcheck="false"><button class="btn small" type="button" data-show="setTd">Show</button></div></div>
       <div class="field"><label for="setFh">Finnhub key</label><div class="inline"><input id="setFh" type="password" autocomplete="off" spellcheck="false"><button class="btn small" type="button" data-show="setFh">Show</button></div></div>
       <div class="field"><label for="setMv">Massive key</label><div class="inline"><input id="setMv" type="password" autocomplete="off" spellcheck="false"><button class="btn small" type="button" data-show="setMv">Show</button></div></div>
+    </fieldset>
+    <fieldset><legend>Sync between computers (optional)</legend>
+      <div class="field"><label for="setGh">GitHub token</label><div class="inline"><input id="setGh" type="password" autocomplete="off" spellcheck="false" placeholder="Starts with ghp_"><button class="btn small" type="button" data-show="setGh">Show</button></div>
+        <small>Keeps your trades and watchlist the same on every computer. The steps to create a token are in Help. Paste the same token on each computer.</small></div>
     </fieldset>
     <fieldset><legend>AI second opinion (optional, paid)</legend>
       <div class="field"><label for="setAi">Claude API key</label><div class="inline"><input id="setAi" type="password" autocomplete="off" spellcheck="false" placeholder="Starts with sk-ant-"><button class="btn small" type="button" data-show="setAi">Show</button></div>
@@ -511,16 +599,41 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
         <input id="setCap" type="number" min="0" step="0.5" inputmode="decimal">
         <small>AI stops for the day once this is reached. The site estimates Haiku costs from each answer; Sonnet costs aren't counted. Set 0 for no limit.</small></div>
     </fieldset>
-    <div class="field"><label for="setScan">Stocks to scan for top buys</label>
-      <textarea id="setScan" spellcheck="false"></textarea>
-      <small>Separate tickers with spaces or commas. The built-in list has 500 heavily traded US stocks. <button class="linkbtn" type="button" id="scanReset">Reset to the built-in list</button></small></div>
+    <fieldset><legend>Key expiration reminders</legend>
+      <p class="hint" style="margin-top:0">Enter when a key expires, and the site shows a warning starting 7 days before.</p>
+      <div class="tgrid">
+        <div class="field"><label for="exp_ai">Claude API key</label><input id="exp_ai" type="datetime-local"></div>
+        <div class="field"><label for="exp_gh">GitHub token</label><input id="exp_gh" type="datetime-local"></div>
+        <div class="field"><label for="exp_td">Twelve Data key</label><input id="exp_td" type="datetime-local"></div>
+        <div class="field"><label for="exp_fh">Finnhub key</label><input id="exp_fh" type="datetime-local"></div>
+        <div class="field"><label for="exp_mv">Massive key</label><input id="exp_mv" type="datetime-local"></div>
+      </div>
+    </fieldset>
+    <fieldset><legend>Trade alerts</legend>
+      <label class="toggle" style="margin-top:0"><input id="setNotify" type="checkbox"> Also show pop-up notifications (your browser will ask permission; only works while the site is open)</label>
+    </fieldset>
+    <fieldset><legend>Scoring rules</legend>
+      <div class="tgrid">
+        <div class="field"><label for="rBuy">Score needed for Good buy</label><input id="rBuy" type="number" min="45" max="100" step="1"></div>
+        <div class="field"><label for="rEarn">Earnings deal-breaker (days)</label><input id="rEarn" type="number" min="0" max="60" step="1"></div>
+        <div class="field"><label for="rRR">Minimum reward to risk</label><input id="rRR" type="number" min="0.5" max="5" step="0.1"></div>
+        <div class="field"><label for="rRSI">RSI limit</label><input id="rRSI" type="number" min="50" max="100" step="1"></div>
+        <div class="field"><label for="rDist">Max distance from support (× daily range, blank for no limit)</label><input id="rDist" type="number" min="0" max="10" step="0.1"></div>
+      </div>
+      <label class="toggle" style="margin-top:0"><input id="rMkt" type="checkbox"> Only rate Good buys when SPY is above its 50-day average</label>
+      <button class="linkbtn" type="button" id="rulesReset">Reset rules to defaults</button>
+    </fieldset>
+    <div class="field"><label for="setScan">Extra stocks to always include</label>
+      <p class="hint" id="listInfo" style="margin:0 0 4px"></p>
+      <textarea id="setScan" spellcheck="false" placeholder="Optional, e.g. SOFI PLTR"></textarea>
+      <small>Separate tickers with spaces or commas. Your watchlist is always included too. <button class="linkbtn" type="button" id="scanReset">Clear</button></small></div>
     <div class="field"><label for="setTheme">Appearance</label>
       <select id="setTheme"><option value="system">Match my device</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
     <div style="display:flex;flex-wrap:wrap;gap:8px">
       <button class="btn primary" type="button" id="setSave">Save settings</button>
     </div>
     <fieldset style="margin-top:20px"><legend>Backup</legend>
-      <p class="hint" style="margin-top:0">Saves your keys, watchlist, scan list and settings to a file. Keep it private, since it contains your keys.</p>
+      <p class="hint" style="margin-top:0">Saves your keys, watchlist, trades and settings to a file. Keep it private, since it contains your keys.</p>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">
         <button class="btn" type="button" id="bkSave">Download backup</button>
         <button class="btn" type="button" id="bkLoad">Restore from backup</button>
@@ -552,13 +665,33 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
     <h3>Top buys</h3>
     <p>The dashboard scores every stock in your scan list (500 by default) plus your watchlist, and shows up to five that currently rate Good buy, highest score first. If fewer qualify, it shows fewer. Some days the honest answer is none.</p>
     <h3>The AI scan</h3>
-    <p>Click <b>Run AI scan</b> on the dashboard whenever you want. It gathers recent news for every stock, then has Claude Haiku review them 10 at a time using your framework. Each stock gets an AI verdict, a one-line reason and a short summary, which appear on its page and in the Scan Results tab. A full scan of 500 stocks takes about 10 to 15 minutes and costs roughly $0.90. You can stop it at any time, and results so far are kept. A brand-new Claude account may start with lower speed limits, so the first few scans can take a little longer.</p>
+    <p>Click <b>Run AI scan</b> on the dashboard whenever you want. It gathers recent news for every stock, then has Claude Haiku review them 10 at a time using your framework. Each stock gets an AI verdict, a one-line reason and a short summary, which appear on its page and in the Scan Results tab. A full scan of 750 stocks takes about 15 minutes and costs roughly $1.35. You can stop it at any time, and results so far are kept. A brand-new Claude account may start with lower speed limits, so the first few scans can take a little longer.</p>
     <h3>Analyze with AI</h3>
     <p>This button, near the top of each stock's page, gives a deeper look at one stock: the full news, earnings history and every factor. It's about half a cent with Haiku.</p>
     <h3>Scan Results tab</h3>
     <p>Lists every scanned stock with its score, verdict, AI verdict and key numbers. Sort and filter to narrow it down, for example by sector or by stocks where the AI disagrees with the score. Download spreadsheet saves what you see as a file that opens in Excel or Google Sheets.</p>
     <h3>Setting up the AI</h3>
     <p>Go to <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> and create an account. Under Billing, add a small amount of prepaid credit, and set a monthly spend limit so it can never charge more than you choose. Then open API Keys, click Create Key, copy it, and paste it into Settings. The daily AI spending limit in Settings adds a second safety net.</p>
+    <h3>My Trades</h3>
+    <p>Log each purchase with Log a trade (or Log a purchase on a stock's page), and add the sale when you sell. When you log a purchase, the site saves a snapshot of the conditions at that moment: score, verdict, distance from support, earnings timing, market and sector trend, news and the AI's view. Past trades get a snapshot rebuilt from price history and news from that time (up to about 6 to 7 months back).</p>
+    <p>"What your trades show" compares your win rate under different conditions. Suggested rule changes appear after 20 closed trades, and you decide whether to apply them. With fewer trades, patterns can easily be luck.</p>
+    <h3>Trade alerts</h3>
+    <p>If an open trade falls to your stop, reaches your target, or its verdict drops to Not a good buy, a banner appears at the top of the site. Turn on pop-up notifications in Settings to also get a browser pop-up while the site is open.</p>
+    <h3>Setting up sync between computers</h3>
+    <ol>
+      <li>Sign in at github.com, click your profile picture (top right), then Settings.</li>
+      <li>Scroll down the left menu to Developer settings, then Personal access tokens, then Tokens (classic).</li>
+      <li>Click Generate new token, then Generate new token (classic).</li>
+      <li>In Note, type Swing Desk sync. Pick an Expiration (90 days is a good choice) and write down the date.</li>
+      <li>Under scopes, check only the box named gist. Scroll down and click Generate token.</li>
+      <li>Copy the token right away (GitHub shows it only once). In Swing Desk, open Settings, paste it into GitHub token, enter its expiration date under Key expiration reminders, and click Save settings.</li>
+      <li>On each other computer, paste the same token into Settings. Your trades and watchlist load within a few seconds.</li>
+    </ol>
+    <p>Only your trades and watchlist sync. Your API keys never leave each browser.</p>
+    <h3>News in the score</h3>
+    <p>Before an AI scan, the Catalyst factor counts how much news a stock has. After a scan, the AI's rating of the news (from strong positive to negative) replaces that count, and the score updates. If the AI spots serious negative news, like a guidance cut or an investigation, the stock can't be a Good buy. News ratings count for 3 trading days.</p>
+    <h3>Scoring rules</h3>
+    <p>The numbers behind the deal-breakers (the score needed for a Good buy, the earnings window, minimum reward to risk and the RSI limit) can be changed in Settings. Suggested changes from your trades use the same settings.</p>
     <h3>Terms you'll see</h3>
     <dl>
       <dt>20, 50 and 200-day averages</dt><dd>The average closing price over that many trading days. Price above rising averages usually means an uptrend.</dd>
@@ -572,7 +705,7 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
       <dt>Accumulation</dt><dd>Volume on up days compared with down days. More volume on up days suggests buyers are building positions.</dd>
     </dl>
     <h3>How the data loads</h3>
-    <p>Massive provides one day of prices for every stock in a single request. The very first time, the site downloads about a year of history one day at a time (5 days a minute on the free plan), which takes about 45 minutes, once. Stocks can be scored after the first 60 days, about 12 minutes in. After that, each new trading day takes one request, so opening the page each morning takes a couple of minutes. Massive's free plan is end-of-day data, so the morning ranking uses the previous close; during market hours, Finnhub keeps your watchlist and the 50 strongest stocks up to date.</p>
+    <p>The site scans the 750 most heavily traded US stocks priced above $5 (by average daily dollar volume), plus your watchlist, open trades and any extras you add. The list refreshes monthly. Massive provides one day of prices for every stock in a single request. The very first time on each computer, the site downloads about 1.5 years of history one day at a time (5 days a minute on the free plan), which takes about 80 minutes, once. Stocks can be scored after the first 60 days, about 15 minutes in. After that, each new trading day takes one request, so opening the page each morning takes a couple of minutes. Massive's free plan is end-of-day data, so the morning ranking uses the previous close; during market hours, Finnhub keeps your watchlist and the 50 strongest stocks up to date.</p>
     <p>Finnhub provides news, earnings dates, company names and live prices, and allows about 60 requests a minute. Twelve Data provides the sector funds and fills in any stock added later. Everything only loads while this page is open.</p>
     <h3>Making changes later</h3>
     <p>Ask Claude for the change and download the new file. Save it with the same name, in the same folder, replacing the old one, and open it in the same browser. Your keys and lists are stored in the browser, so they carry over. If anything goes missing, use Restore from backup in Settings.</p>
@@ -655,7 +788,10 @@ const INDUSTRY_MAP = [
   [/retail|automobile|auto |hotel|restaurant|leisure|textile|apparel|luxury|consumer services|homebuild|household durables|distributor|diversified consumer/i, "XLY"],
   [/aerospace|defense|airline|machinery|industrial|transport|logistic|road|rail|marine|building|construction|electrical|commercial services|professional|trading compan|conglomerate/i, "XLI"]
 ];
-const HIST_DAYS = 230;     // weekdays of history to keep (about 11 months)
+const HIST_DAYS = 392;     // weekdays of history to keep (about 1.5 years)
+const MAX_BARS = 400;
+const LIST_SIZE = 750;     // automatic list: most traded US stocks
+const DAYS_VERSION = 3;
 const SCORE_MIN_BARS = 60;
 
 /* ================= Settings migration ================= */
@@ -667,11 +803,13 @@ const SCORE_MIN_BARS = 60;
   const os = LS.get("sd.settings", null);
   if (os && !LS.get("sd2.settings", null)) LS.set("sd2.settings", { theme: os.theme || "system" });
   LS.keys().filter(k => k.startsWith("sd.")).forEach(k => LS.del(k));
-  if (LS.get("sd2.scanver", 0) < 3){
+  if (LS.get("sd2.scanver", 0) < 4){
     const saved = LS.get("sd2.scan", null);
-    const extra = Array.isArray(saved) ? saved.filter(s => !OLD_DEFAULT.includes(s)) : [];
-    LS.set("sd2.scan", Array.from(new Set(DEFAULT_SCAN.concat(extra))));
-    LS.set("sd2.scanver", 3);
+    const extra = Array.isArray(saved) ? saved.filter(s => !OLD_DEFAULT.includes(s) && !DEFAULT_SCAN.includes(s)) : [];
+    const prev = LS.get("sd2.extras", []);
+    LS.set("sd2.extras", Array.from(new Set(prev.concat(extra))));
+    LS.del("sd2.scan");
+    LS.set("sd2.scanver", 4);
   }
 })();
 
@@ -679,8 +817,12 @@ const SCORE_MIN_BARS = 60;
 const S = {
   td: LS.get("sd2.td", ""), fh: LS.get("sd2.fh", ""), mv: LS.get("sd2.mv", ""), ai: LS.get("sd2.ai", ""),
   watch: LS.get("sd2.watch", ["AAPL","MSFT","NVDA","AMD","SPY"]),
-  scan: LS.get("sd2.scan", DEFAULT_SCAN.slice()),
-  settings: Object.assign({ theme:"system", aiModel:"claude-haiku-4-5-20251001", aiCap:3, amt:2000, gain:10, loss:5, whole:false }, LS.get("sd2.settings", {})),
+  gh: LS.get("sd2.gh", ""),
+  extras: LS.get("sd2.extras", []),
+  auto: null, names: {}, buildingList: false, listDay: 0,
+  trades: LS.get("sd2.trades", []), tdel: LS.get("sd2.tdel", {}), watchAt: LS.get("sd2.watchAt", 0),
+  settings: Object.assign({ theme:"system", aiModel:"claude-haiku-4-5-20251001", aiCap:3, amt:2000, gain:10, loss:5, whole:false, notify:false,
+    expiry:{ ai:"2026-11-28T23:00", gh:"", td:"", fh:"", mv:"" } }, LS.get("sd2.settings", {})),
   selected: LS.get("sd2.selected", null),
   lookups: [], tab: "dash", data: {}, market: null,
   prog: { dayTotal:0, dayDone:0, tdTotal:0, tdDone:0, fhTotal:0, fhDone:0 },
@@ -690,6 +832,9 @@ const S = {
   f: { q:"", sort:"score_desc", verdict:"all", ai:"all", sector:"all", disagree:false, noEarn:false, watchOnly:false, min:"", max:"" }
 };
 if (S.settings.aiModel && !/haiku|sonnet/.test(S.settings.aiModel)) S.settings.aiModel = "claude-haiku-4-5-20251001";
+const DEFAULT_RULES = { buyScore:70, earnDays:14, rrMin:2, rsiMax:75, maxDist:0, needMarketUp:false };
+S.settings.rules = Object.assign({}, DEFAULT_RULES, S.settings.rules || {});
+S.settings.expiry = Object.assign({ ai:"", gh:"", td:"", fh:"", mv:"" }, S.settings.expiry || {});
 const D = s => S.data[s] || (S.data[s] = {});
 function touch(s, strong){
   const d = D(s); d.dirty = true;
@@ -783,6 +928,70 @@ async function mvDay(date){
   if (!Array.isArray(j.results) || !j.results.length) return { empty:true };
   return { results:j.results };
 }
+async function mvJson(url){
+  for (let attempt = 0; attempt < 4; attempt++){
+    await mvLim.take();
+    const full = url + (url.indexOf("?") >= 0 ? "&" : "?") + "apiKey=" + encodeURIComponent(S.mv);
+    let res = null;
+    try{ res = await fetch(full); }catch(e){ throw new ApiError("Couldn't reach Massive. Check your internet connection and click Refresh now.", true); }
+    let j = null; try{ j = await res.json(); }catch(e){}
+    const msg = j ? String(j.error || j.message || "") : "";
+    if (res.status === 401 || /api key|apikey|unknown api/i.test(msg)) throw new ApiError("Massive rejected your API key. Open Settings, paste it again, and save.", true);
+    if (res.status === 429){ await sleep(15000); continue; }
+    if (!res.ok || !j) return null;
+    return j;
+  }
+  return null;
+}
+async function loadRefTickers(){
+  const out = {};
+  for (const type of ["CS", "ADRC"]){
+    let url = `${mvHost}/v3/reference/tickers?market=stocks&type=${type}&active=true&limit=1000`, pages = 0;
+    while (url && pages < 15){
+      const j = await mvJson(url);
+      if (!j) return pages === 0 && type === "CS" ? null : out;
+      (j.results || []).forEach(r => { if (r && r.ticker) out[r.ticker] = r.name || ""; });
+      url = j.next_url || null; pages++;
+    }
+  }
+  return Object.keys(out).length > 500 ? out : null;
+}
+function needAutoList(){ const a = KV.get("autolist", null); return !a || !a.list || daysBetween(a.d, today()) > 30; }
+async function buildAutoList(dates, meta){
+  S.buildingList = true; S.listDay = 0; scheduleRender();
+  try{
+    const ref = await loadRefTickers();
+    if (!ref){ notice("Couldn't load the list of US stocks from Massive, so the built-in list of 500 stocks is being used for now.", true); return; }
+    const raw = [], dollar = {}, seen = {}, last = {};
+    for (const date of dates.slice(0, 30)){
+      if (raw.length >= 20) break;
+      if (S.skipDays[date]) continue;
+      const r = await mvDay(date);
+      if (r.retry){ await sleep(15000); continue; }
+      if (r.notAvailable || r.empty){
+        if (date === dates[0] || daysBetween(date, today()) <= 3) S.skipDays[date] = true; else meta.done[date] = "empty";
+        continue;
+      }
+      raw.push({ date, results:r.results });
+      if (!last.date) last.date = date;
+      r.results.forEach(x => {
+        if (!ref[x.T] || !isFinite(x.c) || !isFinite(x.v)) return;
+        dollar[x.T] = (dollar[x.T] || 0) + x.c * x.v; seen[x.T] = (seen[x.T] || 0) + 1;
+        if (date === last.date) last[x.T] = x.c;
+      });
+      S.listDay = raw.length; scheduleRender();
+    }
+    const need = Math.max(5, Math.floor(raw.length * 0.75));
+    const ranked = Object.keys(dollar).filter(t => seen[t] >= need && last[t] > 5 && !FUNDS.includes(t) && !KNOWN_FUNDS.has(t) && /^[A-Z][A-Z.]{0,5}$/.test(t))
+      .sort((a, b) => dollar[b] / seen[b] - dollar[a] / seen[a]).slice(0, LIST_SIZE);
+    if (ranked.length < 300){ notice("The automatic stock list came back too short, so the built-in list of 500 stocks is being used for now.", true); return; }
+    const names = {}; ranked.forEach(t => names[t] = ref[t]);
+    KV.set("autolist", { d:today(), list:ranked, names });
+    S.auto = ranked; S.names = names; S.allDirty = true;
+    raw.forEach(x => { applyDay(x.date, x.results); meta.done[x.date] = "ok"; });
+    KV.set("days", meta);
+  } finally { S.buildingList = false; scheduleRender(); }
+}
 function latestCandidate(){
   const e = et();
   let d = e.date;
@@ -804,7 +1013,7 @@ function applyDay(date, results){
     const i = d.bars.findIndex(b => b.t === date);
     if (i >= 0) d.bars[i] = bar;
     else { d.bars.push(bar); if (d.bars.length > 1 && d.bars[d.bars.length-2].t > date) d.bars.sort(byT); }
-    if (d.bars.length > 260) d.bars.splice(0, d.bars.length - 260);
+    if (d.bars.length > MAX_BARS) d.bars.splice(0, d.bars.length - MAX_BARS);
     d.hday = today(); touch(s); saveHist(s);
   });
 }
@@ -814,6 +1023,8 @@ async function dayLoop(){
   try{
     const dates = targetDates(), latest = dates[0];
     const meta = KV.get("days", { done:{} });
+    if (meta.v !== DAYS_VERSION){ meta.done = {}; meta.v = DAYS_VERSION; KV.set("days", meta); }
+    if (needAutoList()) await buildAutoList(dates, meta);
     const keep = new Set(dates);
     Object.keys(meta.done).forEach(k => { if (!keep.has(k)) delete meta.done[k]; });
     for(;;){
@@ -865,7 +1076,7 @@ function tdErrMsg(m, s){
 }
 function tdPriority(s){
   if (FUNDS.includes(s)) return 0;
-  if (s === S.selected || S.lookups.includes(s)) return 1;
+  if (s === S.selected || S.lookups.includes(s) || openTradeSyms().includes(s)) return 1;
   if (S.watch.includes(s)) return 2;
   return 3;
 }
@@ -890,7 +1101,7 @@ async function tdLoop(){
       const group = need.slice(0, 8);
       if (credits().used + group.length > 795){ notice("Twelve Data's daily limit is nearly used up, so a few stocks will finish loading tomorrow.", true); break; }
       let out;
-      try{ out = await td("time_series", group, { interval:"1day", outputsize:260 }); }
+      try{ out = await td("time_series", group, { interval:"1day", outputsize:MAX_BARS }); }
       catch(e){ notice(e.message, true); if (e.fatal) break; group.forEach(s => D(s).tdErr = e.message); S.prog.tdDone += group.length; continue; }
       group.forEach(s => {
         const d = D(s), r = out[s];
@@ -1049,17 +1260,17 @@ function mergeBar(d, date, o, h, l, c){
 /* The shortlist that gets news, earnings checks and live prices through the day */
 function candidates(){
   const top = stocksScanned().map(s => ({ s, sc:S.data[s].a.score })).sort((a,b) => b.sc - a.sc).slice(0, 50).map(x => x.s);
-  return uniq(S.watch.concat(S.selected, S.lookups, top)).filter(s => !isFund(s));
+  return uniq(S.watch.concat(S.selected, S.lookups, openTradeSyms(), top)).filter(s => !isFund(s));
 }
 function fhDaily(){
   if (!S.fh) return;
   const t = today();
   if (KV.get("earnbulk", null) !== t) fhTask("E:bulk", 1, loadEarnBulk);
   const g = gUniverse();
-  g.forEach(s => { if (!D(s).prof) fhTask("p:" + s, tdPriority(s) === 3 ? 4 : 1, () => loadProfile(s)); });
+  g.forEach(s => { if (!D(s).prof && !SECTOR_HINT[s]) fhTask("p:" + s, tdPriority(s) === 3 ? 4 : 1, () => loadProfile(s)); });
   // Fundamentals change quarterly: refresh the oldest 100 each day, so all 500 are covered weekly
   g.filter(s => !isFund(s)).map(s => ({ s, d:D(s).met ? D(s).met.d : "0000" })).filter(x => x.d === "0000" || daysBetween(x.d, t) > 6)
-    .sort((a,b) => a.d < b.d ? -1 : 1).slice(0, 100).forEach(x => fhTask("m:" + x.s, 3.5, () => loadMet(x.s)));
+    .sort((a,b) => a.d < b.d ? -1 : 1).slice(0, 110).forEach(x => fhTask("m:" + x.s, 3.5, () => loadMet(x.s)));
   fhCandidates();
 }
 function fhCandidates(){
@@ -1087,7 +1298,7 @@ function startSweep(){
 
 /* ---- WebSocket streaming for the watchlist ---- */
 let ws = null, wsSubs = new Set(), wsFails = 0, wsLive = false;
-function wsWanted(){ return uniq(S.watch.concat(S.selected, topPicks().map(p => p.s))).slice(0, 50); }
+function wsWanted(){ return uniq(openTradeSyms().concat(S.watch, S.selected, topPicks().map(p => p.s))).slice(0, 50); }
 function wsConnect(){
   if (!S.fh || !marketOpen() || wsFails >= 5) return;
   if (ws && ws.readyState <= 1){ wsSync(); return; }
@@ -1120,8 +1331,10 @@ function wsSync(){
 function wsClose(){ if (ws){ try{ ws.close(); }catch(e){} ws = null; } wsLive = false; }
 
 /* ================= Universe & caches ================= */
-function universe(){ return uniq(FUNDS.concat(S.watch, S.selected ? [S.selected] : [], S.lookups, S.scan)); }
-function scanList(){ return uniq(S.scan.concat(S.watch)).filter(s => !isFund(s)); }
+function baseList(){ return S.auto && S.auto.length ? S.auto : DEFAULT_SCAN; }
+function openTradeSyms(){ return S.trades.filter(t => !t.sellPx).map(t => t.sym); }
+function universe(){ return uniq(FUNDS.concat(S.watch, S.selected ? [S.selected] : [], S.lookups, openTradeSyms(), baseList(), S.extras)); }
+function scanList(){ return uniq(baseList().concat(S.extras, S.watch)).filter(s => !isFund(s)); }
 function loadCached(s){
   const d = D(s);
   if (!d.bars){ const h = KV.get("h." + s, null); if (h && h.b && h.b.length){ d.bars = h.b.map(unpack); d.hday = h.d; d.tdDone = !!h.td; } }
@@ -1130,6 +1343,7 @@ function loadCached(s){
   if (!d.met) d.met = KV.get("m." + s, undefined);
   if (!d.news) d.news = KV.get("n." + s, undefined);
   if (!d.ai){ const a = KV.get("a." + s, null); if (a && a.d === today()) d.ai = a; }
+  if (!d.naiDeep) d.naiDeep = KV.get("nai." + s, undefined);
   if (!d.scanAI){ const sc = KV.get("scanai", null); if (sc && sc.results && sc.results[s]) d.scanAI = sc.results[s]; }
   const bad = KV.get("bad." + s, null);
   if (bad && daysBetween(bad.d, today()) < 7 && !d.bars) d.tdErr = bad.m;
@@ -1146,7 +1360,7 @@ function migrateOldCache(){
 function pruneStorage(){
   const u = new Set(universe()), t = today();
   KV.keys().forEach(k => {
-    const m = k.match(/^(h|n|a|e|m)\.(.+)$/); if (!m) return;
+    const m = k.match(/^(h|n|a|e|m|nai)\.(.+)$/); if (!m) return;
     if (!u.has(m[2])){ KV.del(k); return; }
     if (m[1] === "a"){ const v = KV.get(k, null); if (!v || v.d !== t) KV.del(k); }
   });
@@ -1161,7 +1375,7 @@ function sectorOf(s){
 function nameOf(s){
   if (SECTORS[s]) return SECTORS[s] + " sector fund";
   if (s === "SPY") return "S&P 500 fund"; if (s === "QQQ") return "Nasdaq 100 fund";
-  const p = D(s).prof; return p && p.name ? p.name : "";
+  const p = D(s).prof; return p && p.name ? p.name : (S.names[s] || "");
 }
 
 /* ================= Indicators ================= */
@@ -1216,8 +1430,8 @@ function pivots(bars, from, k=3){
 const retN = (c, n) => c.length > n ? c[c.length-1] / c[c.length-1-n] - 1 : null;
 
 /* ================= Market backdrop ================= */
-function computeMarket(){
-  const spy = D("SPY").bars, qqq = D("QQQ").bars;
+function computeMarket(){ return computeMarketFrom(D("SPY").bars, D("QQQ").bars); }
+function computeMarketFrom(spy, qqq){
   if (!spy || spy.length < 60) return null;
   const c = spy.map(b => b.c), L = c.length - 1;
   const s50 = sma(c,50), s200 = c.length >= 200 ? sma(c,200) : null;
@@ -1229,10 +1443,27 @@ function computeMarket(){
 }
 
 /* ================= Scoring ================= */
+const NEWS_PTS = { strong_positive:7, positive:5, neutral:3, mixed:3, quiet:2, negative:0 };
+const NEWS_WORDS = { strong_positive:"a strong positive catalyst", positive:"positive", neutral:"neutral", mixed:"mixed", quiet:"quiet", negative:"negative" };
+function weekdaysAfter(fromDate, toDate){ let n = 0, d = fromDate; while (d < toDate){ d = addDays(d, 1); if (isWeekday(d)) n++; if (n > 10) break; } return n; }
+function freshNews(nai, asOf){ return !!(nai && nai.at && nai.n && weekdaysAfter(etDateMs(nai.at), asOf) <= 3); }
+function newsAIOf(s){
+  const d = D(s), a = d.scanAI && d.scanAI.n ? { n:d.scanAI.n, rf:d.scanAI.rf || "", at:d.scanAI.at } : null, b = d.naiDeep || null;
+  if (a && b) return a.at >= b.at ? a : b;
+  return a || b;
+}
+function ctxLive(sym){
+  const d = D(sym), sec = sectorOf(sym);
+  return { bars:d.bars, spyB:D("SPY").bars, qqqB:D("QQQ").bars, sec, secB:sec ? D(sec).bars : null, earn:d.earn, news:d.news, met:d.met, nai:newsAIOf(sym), asOf:today(), live:true, M:S.market };
+}
 function analyze(sym){
   const d = D(sym), bars = d.bars;
   if (!bars || bars.length < SCORE_MIN_BARS){ d.a = bars && bars.length ? { tooShort:true, n:bars.length } : null; return; }
-  const M = S.market, fund = isFund(sym);
+  d.a = scoreFor(sym, ctxLive(sym));
+}
+function scoreFor(sym, ctx){
+  const bars = ctx.bars, RULE = S.settings.rules, td0 = ctx.asOf;
+  const M = ctx.M, fund = isFund(sym);
   const c = bars.map(b => b.c), L = c.length - 1, price = c[L];
   const s20 = sma(c,20), s50 = sma(c,50), s200 = c.length >= 200 ? sma(c,200) : null;
   const R = rsi(c), Mc = macd(c), A = atr(bars);
@@ -1255,25 +1486,33 @@ function analyze(sym){
 
   /* 2. Catalyst (12) */
   let ce, en, earnSoon = null;
-  const td0 = today();
-  if (fund){ ce = 4; en = "Funds don't report earnings."; }
-  else if (d.earn && d.earn.next){
-    const days = daysBetween(td0, d.earn.next.date);
-    const when = `${fmtDate(d.earn.next.date)}${d.earn.next.hour === "bmo" ? " before the open" : d.earn.next.hour === "amc" ? " after the close" : ""}`;
-    if (days <= 14){ ce = 2; earnSoon = d.earn.next.date; en = `Earnings ${days <= 0 ? "today" : "in " + days + " day" + (days === 1 ? "" : "s")} (${when}). A report inside your holding window can overwhelm the chart.`; }
-    else if (days <= 45){ ce = 6; en = `Earnings on ${when}, after a typical 1 to 2 week hold.`; }
-    else { ce = 5; en = `No earnings until ${fmtDate(d.earn.next.date)}.`; }
-  } else if (d.earn){ ce = 5; en = "No earnings date in the next two months."; }
-  else { ce = 3; en = "Earnings date still loading."; }
-  let cn, nn;
-  if (fund){ cn = 2; nn = ""; }
-  else if (d.news){
-    const { n7, n21 } = d.news, rate7 = n7 / 7, rate0 = n21 / 14;
-    if (n7 >= 3 && rate7 >= 1.5 * Math.max(rate0, 0.1)){ cn = 6; nn = `News flow picked up: ${n7} stories this week, well above normal.`; }
-    else if (n7 >= 2){ cn = 3; nn = `Normal news flow (${n7} stories this week).`; }
-    else if (n7 === 1){ cn = 2; nn = "One story this week."; }
+  const E = ctx.earn;
+  if (fund){ ce = 3; en = "Funds don't report earnings."; }
+  else if (E && E.next){
+    const days = daysBetween(td0, E.next.date);
+    const when = `${fmtDate(E.next.date)}${E.next.hour === "bmo" ? " before the open" : E.next.hour === "amc" ? " after the close" : ""}`;
+    if (days <= RULE.earnDays){ ce = 1; earnSoon = E.next.date; en = `Earnings ${days <= 0 ? "today" : "in " + days + " day" + (days === 1 ? "" : "s")} (${when}). A report inside your holding window can overwhelm the chart.`; }
+    else if (days <= 45){ ce = 5; en = `Earnings on ${when}, after a typical 1 to 2 week hold.`; }
+    else { ce = 4; en = `No earnings until ${fmtDate(E.next.date)}.`; }
+  } else if (E){ ce = 4; en = "No earnings date in the next two months."; }
+  else { ce = 2; en = "Earnings date still loading."; }
+  let cn, nn, newsAnalyzed = false, newsRating = null, redFlag = "", newsAt = null;
+  const nai = !fund && freshNews(ctx.nai, td0) ? ctx.nai : null;
+  const N = ctx.news, n7 = N ? N.n7 : null;
+  if (fund){ cn = 3; nn = ""; }
+  else if (nai){
+    newsAnalyzed = true; newsRating = nai.n; redFlag = nai.rf || ""; newsAt = nai.at;
+    cn = NEWS_PTS[nai.n] != null ? NEWS_PTS[nai.n] : 3;
+    nn = `AI read of the news: ${NEWS_WORDS[nai.n] || nai.n}.` + (redFlag ? ` Red flag: ${redFlag}.` : "");
+  }
+  else if (N){
+    const rate7 = N.n7 / 7, rate0 = N.n21 / 14;
+    if (N.n7 >= 3 && rate7 >= 1.5 * Math.max(rate0, 0.1)){ cn = 5; nn = `News flow picked up: ${N.n7} stories this week, well above normal.`; }
+    else if (N.n7 >= 2){ cn = 3; nn = `Normal news flow (${N.n7} stories this week).`; }
+    else if (N.n7 === 1){ cn = 2; nn = "One story this week."; }
     else { cn = 1; nn = "Quiet: no news this week."; }
-  } else { cn = 2; nn = "News still loading."; }
+    nn += " Not yet rated by AI.";
+  } else { cn = 2; nn = "News not loaded yet."; }
   add("Catalyst", 12, ce + cn, (en + " " + nn).trim());
 
   /* 3. Volume and accumulation (12) */
@@ -1284,7 +1523,7 @@ function analyze(sym){
   let vi = L; if (!bars[L].v && L > 0) vi = L - 1;
   const prevV = bars.slice(Math.max(0, vi-20), vi).map(b => b.v).filter(v => v > 0);
   const avgVol = prevV.length ? prevV.reduce((a,b) => a+b, 0) / prevV.length : null;
-  const projected = vi === L && bars[L].t === td0 && marketOpen();
+  const projected = ctx.live && vi === L && bars[L].t === td0 && marketOpen();
   const volNow = bars[vi].v ? (projected ? bars[vi].v / sessionFraction() : bars[vi].v) : null;
   const vr = avgVol && volNow ? volNow / avgVol : null;
   const upDay = vi > 0 && c[vi] > c[vi-1];
@@ -1311,8 +1550,8 @@ function analyze(sym){
 
   /* 5. Relative strength (10) */
   const r20 = retN(c, 20), r63 = retN(c, 63);
-  const spyB = D("SPY").bars, spy20 = spyB && spyB.length > 21 ? retN(spyB.map(b => b.c), 20) : null;
-  const sec = sectorOf(sym), secB = sec && D(sec).bars, sec20 = secB && secB.length > 21 ? retN(secB.map(b => b.c), 20) : null;
+  const spyB = ctx.spyB, spy20 = spyB && spyB.length > 21 ? retN(spyB.map(b => b.c), 20) : null;
+  const sec = ctx.sec, secB = ctx.secB, sec20 = secB && secB.length > 21 ? retN(secB.map(b => b.c), 20) : null;
   const rsSpy = spy20 != null ? (r20 - spy20) * 100 : null, rsSec = sec20 != null ? (r20 - sec20) * 100 : null;
   let rp = rsSpy == null ? 3 : rsSpy >= 5 ? 6 : rsSpy >= 2 ? 4 : rsSpy >= 0 ? 2 : 0;
   rp += rsSec == null ? 2 : rsSec >= 3 ? 4 : rsSec >= 0 ? 2 : 0;
@@ -1365,10 +1604,10 @@ function analyze(sym){
   add("Sector trend", 7, secp, secn);
 
   /* 9. Fundamentals (5) */
-  let fp = 2, fn = "Fundamentals still loading.";
+  let fp = 2, fn = ctx.live ? "Fundamentals still loading." : "Not available for past dates.";
   if (fund){ fn = "Funds don't have company fundamentals."; }
-  else if (d.met){
-    const m = d.met.m; const parts = []; let pts = 0, any = false;
+  else if (ctx.met){
+    const m = ctx.met.m; const parts = []; let pts = 0, any = false;
     if (m.rg != null){ any = true; pts += m.rg > 10 ? 2 : m.rg > 0 ? 1 : 0; parts.push(`revenue ${m.rg >= 0 ? "up" : "down"} ${fmtN(Math.abs(m.rg),0)}%`); }
     if (m.eg != null){ any = true; pts += m.eg > 0 ? 1 : 0; parts.push(`earnings per share ${m.eg >= 0 ? "up" : "down"} ${fmtN(Math.abs(m.eg),0)}%`); }
     if (m.nm != null){ any = true; pts += m.nm > 0 ? 1 : 0; parts.push(`${fmtN(m.nm,0)}% profit margin`); }
@@ -1390,24 +1629,28 @@ function analyze(sym){
   const strongDown = s200 ? (price < s50[L] && s50[L] < s200[L]) : (price < s50[L] && s20[L] < s50[L] && lh && ll);
   const waits = [];
   if (earnSoon) waits.push(`earnings on ${fmtDate(earnSoon)} are out of the way`);
-  if (rr < 2) waits.push(idealEntry < price * 0.995 ? `a pullback toward ${fmt$(idealEntry)}, where reward to risk would be about 2:1` : `a better entry, since reward to risk is only ${fmtN(rr,1)}:1 here`);
-  if (r > 75) waits.push("RSI cools off from overbought");
+  if (redFlag) waits.push(`the negative news is resolved (AI flagged: ${redFlag})`);
+  if (rr < RULE.rrMin) waits.push(idealEntry < price * 0.995 && RULE.rrMin <= 2.05 ? `a pullback toward ${fmt$(idealEntry)}, where reward to risk would be about 2:1` : `a better entry, since reward to risk is ${fmtN(rr,1)}:1 and you want at least ${fmtN(RULE.rrMin,1)}:1`);
+  if (r > RULE.rsiMax) waits.push("RSI cools off from overbought");
   if (M && M.selloff) waits.push("the market selloff eases");
+  if (RULE.needMarketUp && M && !M.spyAbove50) waits.push("SPY climbs back above its 50-day average (one of your rules)");
+  if (RULE.maxDist > 0 && distATR > RULE.maxDist) waits.push(`a pullback closer to support near ${fmt$(support)} (one of your rules)`);
   let verdict, headline;
   if (score < 45 || strongDown){
     verdict = "not";
     headline = strongDown ? "The trend is down: price is below falling averages. Better setups are elsewhere." : "Too few factors line up right now.";
-  } else if (score >= 70 && !waits.length){
+  } else if (score >= RULE.buyScore && !waits.length){
     verdict = "buy";
     headline = `Strong chart and a real setup, with about ${fmtN(rr,1)}:1 reward to risk at today's price.`;
   } else {
     verdict = "wait";
-    if (!waits.length) waits.push(`more factors line up (the score is ${score}; a good buy needs 70 or more)`);
-    headline = score >= 70 ? "A strong stock, but not at a good moment to buy." : "Some things are working, but not enough yet.";
+    if (!waits.length) waits.push(`more factors line up (the score is ${score}; a good buy needs ${RULE.buyScore} or more)`);
+    headline = score >= RULE.buyScore ? "A strong stock, but not at a good moment to buy." : "Some things are working, but not enough yet.";
   }
 
-  d.a = { price, score, verdict, headline, waits, F, support, resistance, stop, target, target2, rr, idealEntry, atr:atrv,
-    rsi:r, s20:s20, s50:s50, s200:s200, vr, avgVol, r20, r63, rsSpy, rsSec, sec, earnSoon, hi52, breakout, strongDown };
+  return { price, score, verdict, headline, waits, F, support, resistance, stop, target, target2, rr, idealEntry, atr:atrv,
+    rsi:r, s20:s20, s50:s50, s200:s200, vr, avgVol, r20, r63, r252:retN(c, 252), rsSpy, rsSec, sec, earnSoon, hi52, breakout, strongDown,
+    distATR, secp, n7, newsAnalyzed, newsRating, redFlag, newsAt, mktUp: M ? M.spyAbove50 : null, selloff: M ? M.selloff : null };
 }
 
 /* ================= AI ================= */
@@ -1426,6 +1669,7 @@ const FRAMEWORK = `You are a swing-trading analyst helping one person evaluate U
 9. Fundamentals: is the story improving or deteriorating? Cheapness is not required.
 10. Overall market (SPY, QQQ). Be more selective in a selloff.
 Final test: if the person had no position, would they want to buy at this exact price?
+If the person's own trading history or patterns are provided, take them into account. For example, point out when a setup resembles ones that have not worked for them. Mention when their history is based on only a few trades.
 
 The site has already computed a rules-based score out of 100. Your added value is reading the news headlines and earnings information for catalysts and risks that rules cannot judge, and sanity-checking the score. Use only the facts provided. Do not invent news, numbers, dates or events. If the news is thin or unclear, say so. Write for a beginner: plain words, and explain any jargon briefly.`;
 const AI_SYSTEM = FRAMEWORK + `
@@ -1437,14 +1681,19 @@ Respond with ONLY a JSON object, with no markdown and no text before or after it
  "catalysts": ["0 to 3 specific catalysts from the news or earnings date"],
  "risks": ["1 to 3 short risks"],
  "wait_for": "if verdict is wait, the specific thing to wait for, with a price level when possible; otherwise an empty string",
- "news_read": "positive" | "mixed" | "negative" | "quiet"}`;
+ "news_read": "positive" | "mixed" | "negative" | "quiet",
+ "news_rating": "strong_positive" | "positive" | "neutral" | "quiet" | "negative",
+ "red_flag": "if the news contains a serious negative such as a guidance cut, lawsuit, investigation, accounting problem or failed trial, a short description; otherwise an empty string"}`;
 const SCAN_SYSTEM = FRAMEWORK + `
 
 You will receive facts for several stocks at once. Judge each one on its own facts. Respond with ONLY a JSON array, with no markdown and no text before or after it, containing one object per stock with exactly these keys:
 {"ticker": "the ticker",
  "verdict": "good_buy" | "wait" | "not_good",
  "reason": "one line under 15 words",
- "summary": "3 to 4 plain-English sentences on whether this is a good buy right now. Combine what the news says with the chart, score, earnings timing and fundamentals. When useful, name a specific price to watch."}`;
+ "summary": "3 to 4 plain-English sentences on whether this is a good buy right now. Combine what the news says with the chart, score, earnings timing and fundamentals. When useful, name a specific price to watch.",
+ "news": "strong_positive" | "positive" | "neutral" | "quiet" | "negative",
+ "red_flag": "a short description if the news contains a serious negative such as a guidance cut, lawsuit, investigation, accounting problem or failed trial; otherwise an empty string"}
+Rate "news" from the headlines only: strong_positive for a clear, significant catalyst; quiet when there is little or no news.`;
 
 function costOf(model, u){
   const r = RATES[model]; if (!r || !u) return 0;
@@ -1498,6 +1747,8 @@ function aiFacts(s){
     next_earnings:d.earn && d.earn.next ? { date:d.earn.next.date, timing:d.earn.next.hour || "unknown", eps_estimate:d.earn.next.est } : null,
     recent_earnings:d.earn && d.earn.past ? d.earn.past.map(p => ({ date:p.date, eps_actual:p.act, eps_estimate:p.est })) : [],
     fundamentals:d.met ? { revenue_growth_1y_pct:r2(d.met.m.rg), eps_growth_1y_pct:r2(d.met.m.eg), net_margin_pct:r2(d.met.m.nm), debt_to_equity:r2(d.met.m.de), pe_ratio:r2(d.met.m.pe) } : null,
+    your_history_with_this_stock:myHistory(s),
+    your_trading_patterns:myPatterns(),
     news_last_3_weeks:d.news ? { stories_this_week:d.news.n7, stories_prior_two_weeks:d.news.n21, latest:d.news.items.map(n => ({ date:new Date(n.t*1000).toISOString().slice(0,10), source:n.src, headline:n.h, summary:n.s })) } : "not loaded"
   };
 }
@@ -1521,6 +1772,8 @@ async function runAI(s){
     if (i0 < 0 || i1 < i0) throw new Error("The AI's answer couldn't be read. Try again.");
     d.ai = { d:today(), at:Date.now(), model:S.settings.aiModel, r:JSON.parse(t.slice(i0, i1 + 1)) };
     KV.set("a." + s, d.ai);
+    const nr = normNews(d.ai.r.news_rating);
+    if (nr){ d.naiDeep = { n:nr, rf:String(d.ai.r.red_flag || "").slice(0, 160), at:d.ai.at }; KV.set("nai." + s, d.naiDeep); touch(s); scheduleRender(); }
   }catch(e){ d.aiErr = e.message || "Something went wrong with the AI analysis."; }
   finally{ d.aiBusy = false; renderDetail(); }
 }
@@ -1543,15 +1796,19 @@ function compactFacts(s){
   if (d.met) o.fundamentals = { revenue_growth_pct:r2(d.met.m.rg), eps_growth_pct:r2(d.met.m.eg), net_margin_pct:r2(d.met.m.nm) };
   if (d.news){ o.stories_this_week = d.news.n7; o.headlines = d.news.items.slice(0, 5).map(n => new Date(n.t*1000).toISOString().slice(5,10) + " " + n.h); }
   else o.headlines = "not available";
+  const h = myHistory(s); if (h) o.your_history = h;
   return o;
 }
+function normNews(v){ v = String(v || "").toLowerCase().replace(/[\s-]+/g, "_"); return NEWS_PTS[v] != null ? v : (v.indexOf("strong") === 0 ? "strong_positive" : v.indexOf("pos") === 0 ? "positive" : v.indexOf("neg") === 0 ? "negative" : v ? "neutral" : null); }
 function normVerdict(v){ v = String(v || "").toLowerCase(); return v.indexOf("good") === 0 ? "good_buy" : v.indexOf("not") === 0 ? "not_good" : "wait"; }
 async function scanBatch(batch){
-  const content = "Evaluate each of these stocks for a swing trade. Market backdrop: " + JSON.stringify({ date:today(), market:marketFacts() }) + "\nStocks:\n" + JSON.stringify(batch.map(compactFacts));
+  const pats = myPatterns();
+  const content = "Evaluate each of these stocks for a swing trade. Market backdrop: " + JSON.stringify({ date:today(), market:marketFacts() }) +
+    (pats ? "\nThe person's own trading patterns: " + JSON.stringify(pats) : "") + "\nStocks:\n" + JSON.stringify(batch.map(compactFacts));
   let attempt = 0;
   for(;;){
     try{
-      const out = await callClaude(SCAN_MODEL, SCAN_SYSTEM, content, 4000);
+      const out = await callClaude(SCAN_MODEL, SCAN_SYSTEM, content, 4500);
       SCAN.cost += out.cost;
       const t = out.text.replace(/```json|```/g, ""), i0 = t.indexOf("["), i1 = t.lastIndexOf("]");
       let arr = [];
@@ -1561,8 +1818,8 @@ async function scanBatch(batch){
         const s = String(r && r.ticker || "").toUpperCase();
         if (!batch.includes(s) || got.has(s)) return;
         got.add(s);
-        store.results[s] = { v:normVerdict(r.verdict), r:String(r.reason || "").slice(0, 200), s:String(r.summary || "").slice(0, 900), at };
-        D(s).scanAI = store.results[s];
+        store.results[s] = { v:normVerdict(r.verdict), r:String(r.reason || "").slice(0, 200), s:String(r.summary || "").slice(0, 900), at, n:normNews(r.news) || "neutral", rf:String(r.red_flag || "").slice(0, 160) };
+        D(s).scanAI = store.results[s]; touch(s);
       });
       KV.set("scanai", store);
       SCAN.done += got.size;
@@ -1654,6 +1911,43 @@ function badgeFor(s){
   return `<span class="badge b-${d.a.verdict}">${VERDICT[d.a.verdict]} <span style="opacity:.75">${d.a.score}</span></span>`;
 }
 
+/* ---- AI review of your trade journal ---- */
+const REVIEW_SYSTEM = `You are a patient trading coach reviewing one person's swing-trading journal. They trade US stocks for about 1 to 4 weeks, using this framework in order of importance: trend and structure, catalysts (especially earnings timing), volume, support and resistance, relative strength, momentum in context, reward to risk (2:1 or better), sector trend, fundamentals, and the overall market.
+You receive their summary statistics, win rates by condition at the time of purchase, and their trades with a snapshot of conditions when they bought (score out of 100, site verdict, distance from support in multiples of the average daily range, RSI, reward to risk, whether earnings fell during the trade, market and sector trend, news rating, the AI verdict, and headlines).
+Find patterns that genuinely separate their winners from their losers, including patterns in the news and headlines around their purchases. Be specific and practical. Be honest about sample size: with fewer than 20 closed trades, frame findings as early hints, not conclusions. Never promise results. Write for a beginner in plain words.
+Respond with ONLY a JSON object, no markdown, with exactly these keys:
+{"summary": "2 to 3 sentences on how their trading is going overall",
+ "strengths": ["1 to 3 things they do well"],
+ "weaknesses": ["1 to 3 things that are costing them"],
+ "patterns": ["2 to 4 specific patterns with the numbers behind them"],
+ "suggestions": ["2 to 4 concrete changes to try"],
+ "confidence": "early hints" | "moderate" | "solid"}`;
+async function runReview(){
+  if (!S.ai){ notice("Add your Claude API key in Settings to review your trades with AI.", true); openSettings(); return; }
+  if (capLeft() < 0.05){ notice(`You've reached today's AI spending limit of ${fmt$(+S.settings.aiCap)}. You can raise it in Settings.`, true); return; }
+  const closed = S.trades.filter(t => t.sellPx);
+  if (closed.length < 3){ notice("Log at least 3 closed trades before running an AI review. There isn't enough to learn from yet.", true); return; }
+  REVIEW.busy = true; REVIEW.err = null; renderTrades();
+  try{
+    const st = journalStats(), dims = dimensionTable();
+    const facts = {
+      stats: st, by_condition: dims.map(d => ({ condition:d.label, groups:d.groups.map(g => ({ group:g.label, trades:g.n, win_rate_pct:g.n ? Math.round(g.wins / g.n * 100) : null, avg_return_pct:r2(g.avg) })) })),
+      trades: closed.slice(-60).map(tradeFacts), open_trades: S.trades.filter(t => !t.sellPx).map(tradeFacts)
+    };
+    let out, attempt = 0;
+    for(;;){
+      try{ out = await callClaude(S.settings.aiModel, REVIEW_SYSTEM, "Here is my trade journal:\n" + JSON.stringify(facts), 1800); break; }
+      catch(e){ if (e.retry && attempt < 2){ attempt++; await sleep(e.wait || 15000); continue; } throw e; }
+    }
+    const t = out.text, i0 = t.indexOf("{"), i1 = t.lastIndexOf("}");
+    if (i0 < 0 || i1 < i0) throw new Error("The AI's answer couldn't be read. Try again.");
+    const r = JSON.parse(t.slice(i0, i1 + 1));
+    KV.set("jreview", { at:Date.now(), model:S.settings.aiModel, trades:closed.length, r });
+  }catch(e){ REVIEW.err = e.message || "Something went wrong with the review."; }
+  finally{ REVIEW.busy = false; renderTrades(); }
+}
+const REVIEW = { busy:false, err:null };
+
 /* ================= Rendering ================= */
 let renderTimer = null, lastRender = 0;
 function scheduleRender(){
@@ -1676,6 +1970,8 @@ function renderAll(){
   $("viewDash").hidden = !hasKeys || S.tab !== "dash";
   $("viewRes").hidden = !hasKeys || S.tab !== "results";
   $("viewSec").hidden = !hasKeys || S.tab !== "sectors";
+  $("viewTrades").hidden = !hasKeys || S.tab !== "trades";
+  $("tabTrades").setAttribute("aria-selected", S.tab === "trades");
   $("tabDash").setAttribute("aria-selected", S.tab === "dash");
   $("tabRes").setAttribute("aria-selected", S.tab === "results");
   $("tabSec").setAttribute("aria-selected", S.tab === "sectors");
@@ -1683,8 +1979,10 @@ function renderAll(){
   if (hasKeys){
     if (S.tab === "dash"){ renderScanBar(); renderTop5(); renderWatch(); renderDetail(); }
     else if (S.tab === "results") renderResults();
+    else if (S.tab === "trades") renderTrades();
     else renderSectors();
   }
+  renderAlerts();
   renderStatus();
   if (ws) wsSync();
 }
@@ -1701,7 +1999,8 @@ function renderStatus(){
   $("live").hidden = !wsLive;
   const p = S.prog, hasKeys = S.td && S.fh && S.mv;
   let txt = "", pct = 0;
-  if (S.dayRunning && p.dayTotal - p.dayDone > 2){ txt = `Price history: ${p.dayDone} of ${p.dayTotal} days`; pct = p.dayDone / p.dayTotal * 100; }
+  if (S.buildingList){ txt = `Finding the ${LIST_SIZE} most traded stocks: ${S.listDay} of 20 days`; pct = S.listDay / 20 * 100; }
+  else if (S.dayRunning && p.dayTotal - p.dayDone > 2){ txt = `Price history: ${p.dayDone} of ${p.dayTotal} days`; pct = p.dayDone / p.dayTotal * 100; }
   else if (S.dayRunning){ txt = "Updating prices"; pct = 90; }
   else if (S.tdRunning && p.tdTotal){ txt = `Filling in stocks: ${p.tdDone} of ${p.tdTotal}`; pct = p.tdDone / p.tdTotal * 100; }
   else if (p.fhTotal > p.fhDone){ pct = Math.round(p.fhDone / p.fhTotal * 100); txt = `Company data: ${pct}%`; }
@@ -1735,8 +2034,8 @@ function renderTop5(){
   const firstTime = okDays() < SCORE_MIN_BARS && (S.dayRunning || okDays() === 0);
   $("t5sub").textContent = stillGoing ? `Scored ${scanned} of ${u} stocks so far` : `From ${scanned} stocks scored${S.scanDoneAt ? " (updated " + S.scanDoneAt.toLocaleTimeString([], { hour:"numeric", minute:"2-digit" }) + ")" : ""}`;
   if (firstTime && !picks.length){
-    setHTML($("t5body"), `<div class="t5-empty"><p><b>First-time setup:</b> downloading about a year of price history for all ${scanList().length} stocks, one day at a time.</p>
-      <p class="muted" style="font-size:14px">Stocks can be scored once 60 days are in (about 12 minutes). The full year takes about 45 minutes, and only happens once. Keep this page open. After today, the daily update takes a couple of minutes.</p></div>`);
+    setHTML($("t5body"), `<div class="t5-empty"><p><b>First-time setup:</b> ${S.buildingList ? `finding the ${LIST_SIZE} most traded US stocks, then downloading` : "downloading"} about 1.5 years of price history, one day at a time.</p>
+      <p class="muted" style="font-size:14px">Stocks can be scored once 60 days are in (about 15 minutes). The full download takes about 80 minutes, and only happens once per computer. Keep this page open. After today, the daily update takes a couple of minutes.</p></div>`);
     return;
   }
   if (!picks.length){
@@ -1787,6 +2086,8 @@ function renderDetail(){
   $("hChg").textContent = c.pct == null ? "" : `${c.ch >= 0 ? "+" : "−"}${fmtN(Math.abs(c.ch))} (${fmtPct(c.pct)}) today${d.liveAt && Date.now() - d.liveAt < 120000 ? ", live" : ""}`;
   $("btnWatch").textContent = S.watch.includes(s) ? "Remove from watchlist" : "Add to watchlist";
   renderEarnLine(s);
+  const hist = myHistory(s);
+  setHTML($("hHist"), hist ? `You've ${hist.currently_holding ? "got an open position in this stock" : "traded this stock before"}${hist.closed_trades ? `: ${hist.wins} win${hist.wins === 1 ? "" : "s"} in ${hist.closed_trades} closed trade${hist.closed_trades === 1 ? "" : "s"}, averaging ${fmtPct(hist.avg_return_pct,1)}` : ""}.` : "");
 
   const blank = msg => { setHTML($("verdict"), msg ? `<p class="muted">${esc(msg)}</p>` : ""); setHTML($("factors"), ""); setHTML($("calcOut"), ""); setHTML($("calcSugg"), ""); setHTML($("stats"), ""); setHTML($("aiBox"), ""); setHTML($("aiSummary"), ""); };
   if (d.tdErr){ blank(d.tdErr); drawChart(null); renderNews(s); return; }
@@ -1804,6 +2105,7 @@ function renderDetail(){
       <div class="gwrap"><div class="gauge" aria-hidden="true"><span style="width:44%;background:var(--down);opacity:.55"></span><span style="width:25%;background:var(--accent);opacity:.55"></span><span style="width:31%;background:var(--up);opacity:.55"></span></div>
       <div class="needle" style="left:${pos}%"></div></div>
       <div class="glabels" aria-hidden="true"><span style="width:44%">Not a good buy</span><span style="width:25%">Wait</span><span style="width:31%">Good buy</span></div>
+      <p class="newslabel">${isFund(s) ? "" : a.newsAnalyzed ? `Includes AI news analysis from ${new Date(a.newsAt).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}.` : "First draft: the news hasn't been rated by AI yet. Run an AI scan to include it."}</p>
     </div></div>`);
 
   setHTML($("factors"), a.F.map(f => {
@@ -1827,6 +2129,7 @@ function renderDetail(){
     st("Volume vs normal", a.vr ? fmtN(a.vr,1) + "×" : "–") +
     st("Avg daily volume", a.avgVol ? compact.format(a.avgVol) : "–") +
     st("1-month return", fmtPct(a.r20*100,1), a.r20 >= 0 ? "up" : "down") +
+    st("1-year return", a.r252 == null ? "Not enough data" : fmtPct(a.r252*100,1), a.r252 >= 0 ? "up" : "down") +
     st("vs SPY, 1 month", a.rsSpy == null ? "–" : fmtPct(a.rsSpy,1), a.rsSpy >= 0 ? "up" : "down") +
     st("Support", fmt$(a.support)) + st("Resistance", a.resistance ? fmt$(a.resistance) : "None nearby") +
     st("52-week high", fmt$(a.hi52)) +
@@ -1946,6 +2249,7 @@ function resultRows(){
     ai:(x,y) => ((x.ai ? aiRank[x.ai.v] : 3) - (y.ai ? aiRank[y.ai.v] : 3)) || sc(y) - sc(x),
     move:(x,y) => Math.abs(y.c.pct || 0) - Math.abs(x.c.pct || 0),
     m1:(x,y) => (y.a ? y.a.r20 : -9) - (x.a ? x.a.r20 : -9),
+    y1:(x,y) => (y.a && y.a.r252 != null ? y.a.r252 : -9) - (x.a && x.a.r252 != null ? x.a.r252 : -9),
     rr:(x,y) => (y.a ? y.a.rr : -1) - (x.a ? x.a.rr : -1),
     earn:(x,y) => (x.en || "9999") < (y.en || "9999") ? -1 : (x.en || "9999") > (y.en || "9999") ? 1 : 0,
     alpha:(x,y) => x.s.localeCompare(y.s)
@@ -1954,10 +2258,11 @@ function resultRows(){
 }
 function renderResults(){
   const rows = resultRows(), total = scanList().length, m = KV.get("scanmeta", null);
-  $("resCount").textContent = `Showing ${rows.length} of ${total} stocks.` + (m ? ` AI results from your scan on ${new Date(m.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}.` : " No AI scan yet; run one from the Dashboard.");
+  const al = KV.get("autolist", null);
+  $("resCount").textContent = `Showing ${rows.length} of ${total} stocks${al ? ` (the ${al.list.length} most traded, updated ${fmtDate(al.d)}, plus your own)` : ""}.` + (m ? ` AI results from your scan on ${new Date(m.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}.` : " No AI scan yet; run one from the Dashboard.");
   const secOpts = `<option value="all">All sectors</option>` + Object.keys(SECTORS).map(k => `<option value="${k}">${SECTORS[k]}</option>`).join("");
   if ($("fSector").options.length < 2) $("fSector").innerHTML = secOpts;
-  setHTML($("resTable"), `<thead><tr><th>Stock</th><th>Sector</th><th>Price</th><th>Today</th><th>Score</th><th>Verdict</th><th class="wide">AI verdict</th><th>Reward to risk</th><th>1 month</th><th>Next earnings</th></tr></thead>
+  setHTML($("resTable"), `<thead><tr><th>Stock</th><th>Sector</th><th>Price</th><th>Today</th><th>Score</th><th>Verdict</th><th class="wide">AI verdict</th><th>Reward to risk</th><th>1 month</th><th>1 year</th><th>Next earnings</th></tr></thead>
   <tbody>${rows.length ? rows.map(r => `<tr data-sym="${esc(r.s)}" tabindex="0">
     <td><span class="rs-sym">${esc(r.s)}</span><small>${esc(r.name)}</small></td>
     <td class="muted">${r.sec ? SECTORS[r.sec] : "–"}</td>
@@ -1968,16 +2273,17 @@ function renderResults(){
     <td class="wide">${r.ai ? `<span class="badge ${AI_BADGE[r.ai.v]}">${AI_VERDICT[r.ai.v]}</span><small>${esc(r.ai.r)}</small>` : `<span class="muted">Not scanned</span>`}</td>
     <td>${r.a ? fmtN(r.a.rr,1) + ":1" : "–"}</td>
     <td class="${r.a && r.a.r20 >= 0 ? "up" : "down"}">${r.a ? fmtPct(r.a.r20*100,1) : "–"}</td>
+    <td class="${r.a && r.a.r252 >= 0 ? "up" : r.a && r.a.r252 != null ? "down" : "muted"}">${r.a && r.a.r252 != null ? fmtPct(r.a.r252*100,1) : "–"}</td>
     <td class="${r.ed != null && r.ed <= 14 ? "down" : ""}">${r.en ? fmtDate(r.en) + (r.ed <= 14 ? ` (${r.ed <= 0 ? "today" : r.ed + "d"})` : "") : r.d.earn ? "None soon" : "–"}</td>
-  </tr>`).join("") : `<tr><td colspan="10" class="muted" style="text-align:left">No stocks match these filters.</td></tr>`}</tbody>`);
+  </tr>`).join("") : `<tr><td colspan="11" class="muted" style="text-align:left">No stocks match these filters.</td></tr>`}</tbody>`);
 }
 function downloadCSV(){
   const rows = resultRows();
   const q = v => { const t = v == null ? "" : String(v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
-  const head = ["Ticker","Company","Sector","Price","Today %","Score","Verdict","AI verdict","AI reason","AI summary","Reward to risk","Support","Resistance","Stop","Target","1 month %","RSI","Next earnings"];
+  const head = ["Ticker","Company","Sector","Price","Today %","Score","Verdict","AI verdict","AI reason","AI summary","Reward to risk","Support","Resistance","Stop","Target","1 month %","1 year %","RSI","Next earnings"];
   const lines = [head.join(",")].concat(rows.map(r => [r.s, r.name, r.sec ? SECTORS[r.sec] : "", r2(r.c.price), r2(r.c.pct), r.a ? r.a.score : "", r.a ? VERDICT[r.a.verdict] : "",
     r.ai ? AI_VERDICT[r.ai.v] : "", r.ai ? r.ai.r : "", r.ai ? r.ai.s : "", r.a ? r2(r.a.rr) : "", r.a ? r2(r.a.support) : "", r.a ? r2(r.a.resistance) : "", r.a ? r2(r.a.stop) : "", r.a ? r2(r.a.target) : "",
-    r.a ? r2(r.a.r20*100) : "", r.a ? r2(r.a.rsi) : "", r.en || ""].map(q).join(",")));
+    r.a ? r2(r.a.r20*100) : "", r.a && r.a.r252 != null ? r2(r.a.r252*100) : "", r.a ? r2(r.a.rsi) : "", r.en || ""].map(q).join(",")));
   const blob = new Blob([lines.join("\n")], { type:"text/csv" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `swing-desk-scan-${today()}.csv`;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -2077,6 +2383,409 @@ function drawChart(s){
   }
 }
 
+/* ================= Trade journal ================= */
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+function saveTrades(){ LS.set("sd2.trades", S.trades); LS.set("sd2.tdel", S.tdel); syncSoon(); }
+function priceNow(sym){ const b = S.data[sym] && S.data[sym].bars; return b && b.length ? b[b.length - 1].c : null; }
+function tradeCalc(t){
+  const shares = t.amount / t.buyPx, px = t.sellPx || priceNow(t.sym);
+  const buyDate = t.buyAt.slice(0, 10), endDate = t.sellAt ? t.sellAt.slice(0, 10) : today();
+  const pl = px != null ? shares * (px - t.buyPx) : null, pct = px != null ? (px / t.buyPx - 1) * 100 : null;
+  const spy = spyChange(buyDate, t.sellAt ? endDate : null);
+  return { shares, px, pl, pct, days: daysBetween(buyDate, endDate), spy, vsSpy: pct != null && spy != null ? pct - spy : null, closed: !!t.sellPx };
+}
+function spyChange(from, to){
+  const b = D("SPY").bars; if (!b || !b.length) return null;
+  const a = b.filter(x => x.t <= from).pop() || b.find(x => x.t >= from);
+  const z = to ? b.filter(x => x.t <= to).pop() : b[b.length - 1];
+  return a && z ? (z.c / a.c - 1) * 100 : null;
+}
+
+/* ---- Snapshot of conditions at purchase ---- */
+function snapFrom(a, ctx, ai){
+  return { at:Date.now(), score:a.score, verdict:a.verdict, f:a.F.map(f => f.pts), rsi:r2(a.rsi), dist:r2(a.distATR), rr:r2(a.rr),
+    sup:r2(a.support), res:r2(a.resistance), stop:r2(a.stop), tgt:r2(a.target), earnDate: ctx.earn && ctx.earn.next ? ctx.earn.next.date : null,
+    mkt:a.mktUp, selloff:a.selloff, sec:a.secp, rs:r2(a.rsSpy), vr:r2(a.vr), n7:a.n7, news:a.newsRating || null, ai:ai || null,
+    heads:((ctx.news && ctx.news.items) || []).slice(0, 3).map(n => n.h) };
+}
+async function buildSnapshot(t){
+  const date = t.buyAt.slice(0, 10), d = D(t.sym);
+  if (!d.bars || d.bars.length < SCORE_MIN_BARS || !D("SPY").bars) return false;
+  if (date === today() && d.a && !d.a.tooShort){
+    t.snap = Object.assign(snapFrom(d.a, ctxLive(t.sym), d.scanAI ? d.scanAI.v : null), { src:"live" });
+    return true;
+  }
+  const cut = b => b ? b.filter(x => x.t < date) : null;
+  const bars = cut(d.bars);
+  if (bars.length < SCORE_MIN_BARS){ t.snap = { src:"limited", at:Date.now() }; return true; }
+  bars.push({ t:date, o:t.buyPx, h:t.buyPx, l:t.buyPx, c:t.buyPx, v:0 });
+  const spyB = cut(D("SPY").bars), qqqB = cut(D("QQQ").bars), sec = sectorOf(t.sym), secB = sec ? cut(D(sec).bars) : null;
+  let earn = null, news = null;
+  if (S.fh && !isFund(t.sym)){
+    try{
+      const j = await fh("calendar/earnings", { symbol:t.sym, from:date, to:addDays(date, 75) });
+      const list = ((j && j.earningsCalendar) || []).filter(x => x.date && x.date >= date).sort((a, b) => a.date < b.date ? -1 : 1);
+      earn = { next: list[0] ? { date:list[0].date, hour:list[0].hour || "" } : null };
+    }catch(e){}
+    try{
+      const j = await fh("company-news", { symbol:t.sym, from:addDays(date, -21), to:date });
+      const arr = Array.isArray(j) ? j.filter(x => x && x.headline) : [], end = Date.parse(date + "T21:00:00Z") / 1000;
+      const n7 = arr.filter(x => end - x.datetime <= 7*86400).length;
+      news = { n7, n21:arr.length - n7, items:arr.sort((a, b) => b.datetime - a.datetime).slice(0, 3).map(x => ({ h:String(x.headline).slice(0, 180) })) };
+    }catch(e){}
+  }
+  const ctx = { bars, spyB, qqqB, sec, secB, earn, news, met:null, nai:null, asOf:date, live:false, M:computeMarketFrom(spyB, qqqB) };
+  t.snap = Object.assign(snapFrom(scoreFor(t.sym, ctx), ctx, null), { src:"rebuilt" });
+  return true;
+}
+let snapBusy = false;
+async function fillSnapshots(){
+  if (snapBusy) return; snapBusy = true;
+  try{
+    for (const t of S.trades){
+      if (t.snap || (t.snapTries || 0) > 40) continue;
+      t.snapTries = (t.snapTries || 0) + 1;
+      if (await buildSnapshot(t)){ t.updated = Date.now(); saveTrades(); renderTrades(); }
+    }
+  } finally { snapBusy = false; }
+}
+
+/* ---- Stats and patterns ---- */
+function journalStats(){
+  const closed = S.trades.filter(t => t.sellPx).map(t => ({ t, c:tradeCalc(t) }));
+  const wins = closed.filter(x => x.c.pct > 0), losses = closed.filter(x => x.c.pct <= 0);
+  const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+  const open = S.trades.filter(t => !t.sellPx).map(t => ({ t, c:tradeCalc(t) }));
+  return {
+    closed_trades: closed.length, wins: wins.length, win_rate_pct: closed.length ? Math.round(wins.length / closed.length * 100) : null,
+    avg_win_pct: r2(avg(wins.map(x => x.c.pct))), avg_loss_pct: r2(avg(losses.map(x => x.c.pct))),
+    total_pl: r2(closed.reduce((a, x) => a + x.c.pl, 0)), avg_hold_days: r2(avg(closed.map(x => x.c.days))),
+    avg_vs_spy_pct: r2(avg(closed.map(x => x.c.vsSpy).filter(v => v != null))),
+    best: closed.length ? closed.reduce((a, x) => x.c.pct > a.c.pct ? x : a) : null,
+    worst: closed.length ? closed.reduce((a, x) => x.c.pct < a.c.pct ? x : a) : null,
+    open_count: open.length, open_value: r2(open.reduce((a, x) => a + (x.c.px != null ? x.c.shares * x.c.px : 0), 0)),
+    open_pl: r2(open.reduce((a, x) => a + (x.c.pl || 0), 0))
+  };
+}
+const heldEarn = t => { const s = t.snap; return !!(s && s.earnDate && s.earnDate >= t.buyAt.slice(0, 10) && s.earnDate <= (t.sellAt || "9999").slice(0, 10)); };
+const DIMENSIONS = [
+  { key:"score", label:"Score when you bought", groups:[["70 or higher", s => s.score >= 70], ["45 to 69", s => s.score >= 45 && s.score < 70], ["Below 45", s => s.score < 45]] },
+  { key:"verdict", label:"Site verdict when you bought", groups:[["Good buy", s => s.verdict === "buy"], ["I would wait", s => s.verdict === "wait"], ["Not a good buy", s => s.verdict === "not"]] },
+  { key:"support", label:"Distance from support", groups:[["Near support (within 1.5× daily range)", s => s.dist != null && s.dist <= 1.5], ["Farther from support", s => s.dist != null && s.dist > 1.5]] },
+  { key:"earn", label:"Earnings during the trade", groups:[["Held through earnings", (s, t) => heldEarn(t)], ["No earnings during the trade", (s, t) => !heldEarn(t)]] },
+  { key:"market", label:"Market when you bought", groups:[["SPY above its 50-day", s => s.mkt === true], ["SPY below its 50-day", s => s.mkt === false]] },
+  { key:"sector", label:"Sector trend when you bought", groups:[["Strong sector", s => s.sec >= 5], ["Weak or neutral sector", s => s.sec != null && s.sec < 5]] },
+  { key:"rsi", label:"RSI when you bought", groups:[["Above 70", s => s.rsi > 70], ["70 or below", s => s.rsi != null && s.rsi <= 70]] },
+  { key:"rr", label:"Reward to risk when you bought", groups:[["2:1 or better", s => s.rr >= 2], ["Below 2:1", s => s.rr != null && s.rr < 2]] },
+  { key:"news", label:"News when you bought", groups:[["Busy or positive news", s => s.news === "positive" || s.news === "strong_positive" || (!s.news && s.n7 >= 3)], ["Quiet, neutral or negative news", s => (s.news && ["quiet","neutral","mixed","negative"].includes(s.news)) || (!s.news && s.n7 != null && s.n7 < 3)]] },
+  { key:"ai", label:"AI verdict when you bought", groups:[["AI said Good buy", s => s.ai === "good_buy"], ["AI said wait or not", s => s.ai === "wait" || s.ai === "not_good"]] }
+];
+function dimensionTable(){
+  const closed = S.trades.filter(t => t.sellPx && t.snap && t.snap.score != null).map(t => ({ t, c:tradeCalc(t) }));
+  return DIMENSIONS.map(dim => ({ key:dim.key, label:dim.label, groups: dim.groups.map(([label, fn]) => {
+    const g = closed.filter(x => { try{ return fn(x.t.snap, x.t); }catch(e){ return false; } });
+    const wins = g.filter(x => x.c.pct > 0).length;
+    return { label, n:g.length, wins, avg: g.length ? g.reduce((a, x) => a + x.c.pct, 0) / g.length : null };
+  }) }));
+}
+function myHistory(sym){
+  const ts = S.trades.filter(t => t.sym === sym); if (!ts.length) return null;
+  const closed = ts.filter(t => t.sellPx).map(t => tradeCalc(t));
+  return { closed_trades:closed.length, wins:closed.filter(c => c.pct > 0).length, avg_return_pct: closed.length ? r2(closed.reduce((a, c) => a + c.pct, 0) / closed.length) : null, currently_holding: ts.some(t => !t.sellPx) };
+}
+function insightLines(minN){
+  const out = [];
+  dimensionTable().forEach(d => {
+    const gs = d.groups.filter(g => g.n >= minN); if (gs.length < 2) return;
+    const [a, b] = gs.slice().sort((x, y) => y.wins / y.n - x.wins / x.n);
+    const diff = (a.wins / a.n - b.wins / b.n) * 100;
+    if (diff >= 20) out.push({ diff, text:`${d.label}: "${a.label}" won ${a.wins} of ${a.n} (average ${fmtPct(a.avg,1)}), vs "${b.label}" ${b.wins} of ${b.n} (average ${fmtPct(b.avg,1)}).` });
+  });
+  return out.sort((x, y) => y.diff - x.diff);
+}
+function myPatterns(){
+  const n = S.trades.filter(t => t.sellPx).length; if (n < 5) return null;
+  const lines = insightLines(3).slice(0, 4).map(x => x.text);
+  return lines.length ? { closed_trades:n, note: n < 20 ? "small sample, treat as early hints" : "moderate sample", patterns:lines } : null;
+}
+function tradeFacts(t){
+  const c = tradeCalc(t), s = t.snap || {};
+  return { stock:t.sym, bought:t.buyAt.slice(0, 10), sold:t.sellAt ? t.sellAt.slice(0, 10) : null, return_pct:r2(c.pct), vs_spy_pct:r2(c.vsSpy), days_held:c.days, note:t.note || undefined,
+    at_purchase: s.score != null ? { score:s.score, verdict:s.verdict, dist_from_support_x_range:s.dist, rsi:s.rsi, reward_to_risk:s.rr, earnings_during_trade:heldEarn(t), spy_above_50_day:s.mkt, sector_points_of_7:s.sec, news:s.news || (s.n7 != null ? s.n7 + " stories that week" : null), ai_verdict:s.ai, headlines:s.heads } : "not available" };
+}
+function suggestions(){
+  const closed = S.trades.filter(t => t.sellPx && t.snap && t.snap.score != null).map(t => ({ t, s:t.snap, c:tradeCalc(t) }));
+  if (closed.length < 20) return [];
+  const R = S.settings.rules, out = [];
+  const cmp = (f1, f2) => {
+    const a = closed.filter(x => f1(x)), b = closed.filter(x => f2(x));
+    if (a.length < 5 || b.length < 5) return null;
+    const wa = a.filter(x => x.c.pct > 0).length / a.length, wb = b.filter(x => x.c.pct > 0).length / b.length;
+    return { a, b, wa, wb, diff:(wa - wb) * 100 };
+  };
+  const ev = r => `${Math.round(r.wa*100)}% wins (${r.a.length} trades) vs ${Math.round(r.wb*100)}% (${r.b.length} trades)`;
+  let r;
+  if (R.earnDays < 21 && (r = cmp(x => !heldEarn(x.t), x => heldEarn(x.t))) && r.diff >= 20)
+    out.push({ key:"earnDays", val:21, text:`Trades held through earnings did worse: ${ev(r)} for trades without earnings. Consider widening the earnings deal-breaker from ${R.earnDays} to 21 days.` });
+  if (R.rsiMax > 70 && (r = cmp(x => x.s.rsi <= 70, x => x.s.rsi > 70)) && r.diff >= 20)
+    out.push({ key:"rsiMax", val:70, text:`Buying with RSI above 70 worked less often: ${ev(r)} when RSI was 70 or below. Consider lowering the RSI limit from ${R.rsiMax} to 70.` });
+  if (R.buyScore < 75 && (r = cmp(x => x.s.score >= 75, x => x.s.score >= 70 && x.s.score < 75)) && r.diff >= 20)
+    out.push({ key:"buyScore", val:75, text:`Scores of 75+ worked better than 70 to 74: ${ev(r)}. Consider raising the Good buy score from ${R.buyScore} to 75.` });
+  if (R.rrMin < 2.5 && (r = cmp(x => x.s.rr >= 2.5, x => x.s.rr >= 2 && x.s.rr < 2.5)) && r.diff >= 20)
+    out.push({ key:"rrMin", val:2.5, text:`Reward to risk of 2.5:1 or better worked better than 2 to 2.5: ${ev(r)}. Consider raising the minimum to 2.5:1.` });
+  if (!R.maxDist && (r = cmp(x => x.s.dist <= 1.5, x => x.s.dist > 1.5)) && r.diff >= 20)
+    out.push({ key:"maxDist", val:1.5, text:`Buying near support worked better: ${ev(r)} for entries farther away. Consider requiring entries within 1.5× the daily range of support.` });
+  if (!R.needMarketUp && (r = cmp(x => x.s.mkt === true, x => x.s.mkt === false)) && r.diff >= 20)
+    out.push({ key:"needMarketUp", val:true, text:`Trades bought while SPY was above its 50-day average did better: ${ev(r)} otherwise. Consider only rating Good buys when SPY is above its 50-day.` });
+  return out;
+}
+
+/* ---- Alerts for open trades ---- */
+function tradeAlerts(){
+  const out = [], dismissed = LS.get("sd2.dismissed", {});
+  S.trades.filter(t => !t.sellPx).forEach(t => {
+    const px = priceNow(t.sym), a = S.data[t.sym] && S.data[t.sym].a; if (px == null) return;
+    const push = (kind, cls, msg) => { const key = `${t.id}:${kind}:${kind === "not" ? "" : (kind === "stop" ? t.stop : t.target)}`; if (!dismissed[key]) out.push({ key, kind, cls, msg, id:t.id }); };
+    if (t.stop && px <= t.stop) push("stop", "err", `${t.sym} fell to your stop of ${fmt$(t.stop)} (now ${fmt$(px)}, ${fmtPct((px / t.buyPx - 1) * 100, 1)} from your purchase).`);
+    if (t.target && px >= t.target) push("target", "good", `${t.sym} reached your target of ${fmt$(t.target)} (now ${fmt$(px)}, ${fmtPct((px / t.buyPx - 1) * 100, 1)} from your purchase).`);
+    if (a && !a.tooShort && a.verdict === "not") push("not", "err", `${t.sym}'s verdict dropped to Not a good buy (score ${a.score}). Worth a look at the chart.`);
+  });
+  return out;
+}
+function expiryAlerts(){
+  const out = [], names = { ai:"Claude API key", gh:"GitHub token", td:"Twelve Data key", fh:"Finnhub key", mv:"Massive key" }, now = Date.now(), dismissed = LS.get("sd2.dismissed", {});
+  Object.keys(names).forEach(k => {
+    const v = S.settings.expiry[k]; if (!v) return;
+    const at = new Date(v).getTime(); if (!isFinite(at)) return;
+    const days = Math.ceil((at - now) / 86400000), key = `exp:${k}:${v}:${today()}`;
+    if (dismissed[key]) return;
+    const when = new Date(v).toLocaleString([], { weekday:"long", month:"short", day:"numeric", hour:"numeric", minute:"2-digit" });
+    if (at < now) out.push({ key, cls:"err", msg:`Your ${names[k]} expired on ${when}. Create a new one and paste it into Settings, then update the expiration date there.` });
+    else if (days <= 7) out.push({ key, cls:"warn", msg:`Your ${names[k]} expires in ${days <= 1 ? "less than a day" : days + " days"} (${when}). Create a new one before then and paste it into Settings.` });
+  });
+  return out;
+}
+const notified = new Set();
+function renderAlerts(){
+  const all = expiryAlerts().concat(tradeAlerts());
+  setHTML($("alerts"), all.map(x => `<div class="alert ${x.cls}"><span>${esc(x.msg)}</span><span class="alert-act">${x.id ? `<button class="linkbtn" type="button" data-trade="${x.id}">View trade</button>` : ""}<button class="linkbtn" type="button" data-dismiss="${esc(x.key)}">Dismiss</button></span></div>`).join(""));
+  if (S.settings.notify && window.Notification && Notification.permission === "granted"){
+    all.forEach(x => { if (x.id && !notified.has(x.key)){ notified.add(x.key); try{ new Notification("Swing Desk", { body:x.msg }); }catch(e){} } });
+  }
+}
+
+/* ---- Sync through a private GitHub gist ---- */
+const SYNC = { busy:false, last:0, err:null, timer:null, again:false };
+const GIST_FILE = "swing-desk-sync.json", GIST_DESC = "Swing Desk sync (trades and watchlist)";
+async function gh(path, opts){
+  let res;
+  try{
+    res = await fetch("https://api.github.com" + path, Object.assign({}, opts, { headers: Object.assign({ "Authorization":"Bearer " + S.gh, "Accept":"application/vnd.github+json", "X-GitHub-Api-Version":"2022-11-28" }, (opts && opts.headers) || {}) }));
+  }catch(e){ throw new Error("Couldn't reach GitHub. Check your internet connection."); }
+  if (res.status === 401) throw new Error("GitHub rejected your token. It may have expired. Create a new one (steps are in Help) and paste it into Settings.");
+  if (res.status === 403 || res.status === 404) return { status:res.status, json:null };
+  let j = null; try{ j = await res.json(); }catch(e){}
+  return { status:res.status, json:j };
+}
+function localPayload(){ return { app:"swing-desk", v:1, updated:Date.now(), watch:S.watch, watchAt:S.watchAt, trades:cleanTrades(S.trades), tdel:S.tdel }; }
+async function ensureGist(){
+  let id = LS.get("sd2.gist", null);
+  if (id){ const r = await gh(`/gists/${id}`); if (r.json && r.json.files) return { id, gist:r.json }; id = null; }
+  const list = await gh("/gists?per_page=100");
+  const found = Array.isArray(list.json) ? list.json.find(g => g.description === GIST_DESC && g.files && g.files[GIST_FILE]) : null;
+  if (found){ LS.set("sd2.gist", found.id); const r = await gh(`/gists/${found.id}`); return { id:found.id, gist:r.json }; }
+  const created = await gh("/gists", { method:"POST", body:JSON.stringify({ description:GIST_DESC, public:false, files:{ [GIST_FILE]:{ content:JSON.stringify(localPayload()) } } }) });
+  if (!created.json || !created.json.id) throw new Error(created.status === 403 || created.status === 404 ? "Your GitHub token doesn't have permission to create gists. Make a new token with the gist box checked (steps are in Help)." : "Couldn't create the sync gist on GitHub.");
+  LS.set("sd2.gist", created.json.id);
+  return { id:created.json.id, gist:created.json, fresh:true };
+}
+async function readGist(g){
+  const f = g && g.files && g.files[GIST_FILE]; if (!f) return null;
+  let text = f.content;
+  if (f.truncated && f.raw_url){ try{ text = await (await fetch(f.raw_url)).text(); }catch(e){ return null; } }
+  try{ return JSON.parse(text); }catch(e){ return null; }
+}
+function mergeRemote(rem){
+  if (!rem || rem.app !== "swing-desk") return false;
+  let changed = false;
+  const tdel = Object.assign({}, rem.tdel || {});
+  Object.keys(S.tdel).forEach(k => { tdel[k] = Math.max(tdel[k] || 0, S.tdel[k]); });
+  const map = {};
+  S.trades.forEach(t => map[t.id] = t);
+  (rem.trades || []).forEach(t => { if (!map[t.id] || (t.updated || 0) > (map[t.id].updated || 0)){ map[t.id] = t; changed = true; } });
+  const trades = Object.values(map).filter(t => !(tdel[t.id] && tdel[t.id] >= (t.updated || 0))).sort((a, b) => a.buyAt < b.buyAt ? -1 : 1);
+  if (trades.length !== S.trades.length) changed = true;
+  S.trades = trades; S.tdel = tdel;
+  if ((rem.watchAt || 0) > S.watchAt && Array.isArray(rem.watch)){ S.watch = rem.watch; S.watchAt = rem.watchAt; LS.set("sd2.watch", S.watch); LS.set("sd2.watchAt", S.watchAt); changed = true; }
+  LS.set("sd2.trades", S.trades); LS.set("sd2.tdel", S.tdel);
+  return changed;
+}
+function cleanTrades(arr){ return (arr || []).map(t => { const c = Object.assign({}, t); delete c.snapTries; return c; }); }
+async function syncNow(){
+  if (!S.gh) return;
+  if (SYNC.busy){ SYNC.again = true; return; }
+  SYNC.busy = true; SYNC.err = null; renderSyncStatus();
+  try{
+    const { id, gist, fresh } = await ensureGist();
+    if (!fresh){
+      const rem = await readGist(gist);
+      if (mergeRemote(rem)){ universe().forEach(loadCached); kickoff(); scheduleRender(); }
+      const same = rem && JSON.stringify([cleanTrades(rem.trades), rem.watch, rem.tdel || {}]) === JSON.stringify([cleanTrades(S.trades), S.watch, S.tdel]);
+      if (!same){
+        const r = await gh(`/gists/${id}`, { method:"PATCH", body:JSON.stringify({ files:{ [GIST_FILE]:{ content:JSON.stringify(localPayload()) } } }) });
+        if (!r.json) throw new Error("GitHub didn't accept the update. Check that your token has the gist permission.");
+      }
+    }
+    SYNC.last = Date.now();
+  }catch(e){ SYNC.err = e.message; }
+  finally{
+    SYNC.busy = false; renderSyncStatus(); renderTrades();
+    if (SYNC.again){ SYNC.again = false; syncSoon(); }
+  }
+}
+function syncSoon(){ if (!S.gh) return; clearTimeout(SYNC.timer); SYNC.timer = setTimeout(syncNow, 3000); }
+function renderSyncStatus(){
+  const el = $("syncStatus"); if (!el) return;
+  if (!S.gh) el.innerHTML = `Sync is off. <button class="linkbtn" type="button" data-act="settings">Set it up in Settings</button> to see your trades on every computer.`;
+  else if (SYNC.busy) el.textContent = "Syncing with GitHub…";
+  else if (SYNC.err) el.innerHTML = `<span class="down">Sync problem: ${esc(SYNC.err)}</span>`;
+  else if (SYNC.last) el.textContent = "Synced with GitHub at " + new Date(SYNC.last).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" }) + ".";
+  else el.textContent = "Sync is on.";
+}
+
+/* ---- My Trades rendering ---- */
+function renderTrades(){
+  if (S.tab !== "trades" || !$("viewTrades")) { renderAlerts(); return; }
+  renderSyncStatus();
+  const st = journalStats();
+  const card = (k, v, cls = "") => `<div class="stat"><div class="k">${k}</div><div class="v ${cls}">${v}</div></div>`;
+  setHTML($("jStats"),
+    card("Closed trades", st.closed_trades) + card("Win rate", st.win_rate_pct == null ? "–" : st.win_rate_pct + "%") +
+    card("Average win", st.avg_win_pct == null ? "–" : fmtPct(st.avg_win_pct,1), "up") + card("Average loss", st.avg_loss_pct == null ? "–" : fmtPct(st.avg_loss_pct,1), "down") +
+    card("Total profit or loss", st.closed_trades ? (st.total_pl >= 0 ? "+" : "−") + fmt$(Math.abs(st.total_pl)) : "–", st.total_pl >= 0 ? "up" : "down") +
+    card("Average hold", st.avg_hold_days == null ? "–" : fmtN(st.avg_hold_days,0) + " days") +
+    card("vs holding SPY", st.avg_vs_spy_pct == null ? "–" : fmtPct(st.avg_vs_spy_pct,1) + " per trade", st.avg_vs_spy_pct >= 0 ? "up" : "down") +
+    card("Open positions", st.open_count ? `${st.open_count}, ${st.open_pl >= 0 ? "+" : "−"}${fmt$(Math.abs(st.open_pl))}` : "None", st.open_pl >= 0 ? "up" : "down"));
+
+  const alertIds = new Set(tradeAlerts().map(a => a.id));
+  const open = S.trades.filter(t => !t.sellPx).slice().reverse(), closed = S.trades.filter(t => t.sellPx).slice().sort((a, b) => a.sellAt < b.sellAt ? 1 : -1);
+  const dt = v => new Date(v).toLocaleString([], { month:"short", day:"numeric", year:"2-digit", hour:"numeric", minute:"2-digit" });
+  const snapTag = t => !t.snap ? `<small class="muted">Snapshot loading…</small>` : t.snap.score == null ? `<small class="muted">Not enough history for a snapshot</small>` : `<small>Score ${t.snap.score} (${VERDICT[t.snap.verdict]})${t.snap.src === "rebuilt" ? ", rebuilt" : ""}</small>`;
+  setHTML($("jOpen"), open.length ? `<table class="jtable"><thead><tr><th>Stock</th><th>Bought</th><th>Shares</th><th>Buy price</th><th>Now</th><th>Profit or loss</th><th>Stop</th><th>Target</th><th>Verdict now</th><th></th></tr></thead><tbody>${open.map(t => {
+    const c = tradeCalc(t), a = S.data[t.sym] && S.data[t.sym].a;
+    return `<tr class="${alertIds.has(t.id) ? "flag" : ""}"><td><button class="secname" type="button" data-sym="${esc(t.sym)}">${esc(t.sym)}<small>${esc(nameOf(t.sym))}</small></button></td>
+      <td>${dt(t.buyAt)}${snapTag(t)}</td><td>${fmtN(c.shares, c.shares % 1 ? 3 : 0)}</td><td>${fmt$(t.buyPx)}</td><td>${fmt$(c.px)}</td>
+      <td class="${c.pl >= 0 ? "up" : "down"}">${c.pl == null ? "–" : (c.pl >= 0 ? "+" : "−") + fmt$(Math.abs(c.pl))}<small>${fmtPct(c.pct,1)}</small></td>
+      <td>${t.stop ? fmt$(t.stop) : "–"}</td><td>${t.target ? fmt$(t.target) : "–"}</td>
+      <td>${a && !a.tooShort ? `<span class="badge b-${a.verdict}">${VERDICT[a.verdict]}</span>` : "–"}</td>
+      <td class="acts"><button class="btn small" type="button" data-sell="${t.id}">Sell</button><button class="linkbtn" type="button" data-edit="${t.id}">Edit</button></td></tr>`;
+  }).join("")}</tbody></table>` : `<p class="hint">No open trades. Click Log a trade to add one, or use Log a purchase on any stock's page.</p>`);
+
+  setHTML($("jClosed"), closed.length ? `<table class="jtable"><thead><tr><th>Stock</th><th>Bought</th><th>Sold</th><th>Held</th><th>Buy</th><th>Sell</th><th>Profit or loss</th><th>vs SPY</th><th></th></tr></thead><tbody>${closed.map(t => {
+    const c = tradeCalc(t);
+    return `<tr><td><button class="secname" type="button" data-sym="${esc(t.sym)}">${esc(t.sym)}<small>${esc(nameOf(t.sym))}</small></button></td>
+      <td>${dt(t.buyAt)}${snapTag(t)}</td><td>${dt(t.sellAt)}</td><td>${c.days} day${c.days === 1 ? "" : "s"}</td><td>${fmt$(t.buyPx)}</td><td>${fmt$(t.sellPx)}</td>
+      <td class="${c.pl >= 0 ? "up" : "down"}">${(c.pl >= 0 ? "+" : "−") + fmt$(Math.abs(c.pl))}<small>${fmtPct(c.pct,1)}</small></td>
+      <td class="${c.vsSpy >= 0 ? "up" : "down"}">${c.vsSpy == null ? "–" : fmtPct(c.vsSpy,1)}</td>
+      <td class="acts"><button class="linkbtn" type="button" data-edit="${t.id}">Edit</button></td></tr>`;
+  }).join("")}</tbody></table>` : `<p class="hint">No closed trades yet. When you sell, click Sell on the open trade and enter the sale.</p>`);
+
+  const n = S.trades.filter(t => t.sellPx).length;
+  const dims = dimensionTable();
+  setHTML($("jInsights"), (n < 20 ? `<p class="calc-note">Patterns become meaningful at around 20 to 30 closed trades. You have ${n}. Until then, treat anything below as early hints, not conclusions.</p>` : "") +
+    `<div class="dims">${dims.map(d => `<div class="dim"><div class="dim-h">${d.label}</div>${d.groups.map(g => {
+      const wr = g.n ? Math.round(g.wins / g.n * 100) : 0;
+      return `<div class="dim-row"><span class="dim-l">${esc(g.label)}</span>${g.n >= 5 ? `<span class="dim-bar"><i style="width:${wr}%;background:${wr >= 50 ? "var(--up)" : "var(--down)"}"></i></span><span class="dim-v">${wr}% of ${g.n}, avg ${fmtPct(g.avg,1)}</span>` : `<span class="dim-v muted">${g.n ? `Not enough trades yet (${g.n})` : "No trades"}</span>`}</div>`;
+    }).join("")}</div>`).join("")}</div>`);
+
+  const sug = suggestions();
+  setHTML($("jSuggest"), n < 20 ? `<p class="hint" style="margin:0">Suggested rule changes appear after 20 closed trades with snapshots, so they're based on enough data to mean something.</p>` :
+    sug.length ? sug.map(x => `<div class="sug"><p>${esc(x.text)}</p><button class="btn small" type="button" data-rule="${x.key}" data-val="${x.val}">Apply this change</button></div>`).join("") + `<p class="hint">You can undo any change in Settings under Scoring rules.</p>` :
+    `<p class="hint" style="margin:0">No clear changes stand out from your trades right now. That's a good sign your rules fit how you trade.</p>`);
+
+  const rv = KV.get("jreview", null), box = $("jReview");
+  if (REVIEW.busy) setHTML(box, `<div class="ai-box"><p class="muted" style="margin:0">Reading your trades and looking for patterns…</p></div>`);
+  else {
+    const list = arr => Array.isArray(arr) && arr.length ? `<ul>${arr.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
+    setHTML(box, (rv && rv.r ? `<div class="ai-box"><div class="ai-box-top"><span class="ai-verdict">Your trading review</span><span class="muted" style="font-size:13px">${esc(rv.r.confidence || "")}</span></div>
+      <p style="margin:6px 0 0">${esc(rv.r.summary)}</p>
+      ${rv.r.strengths && rv.r.strengths.length ? `<h4>What's working</h4>${list(rv.r.strengths)}` : ""}
+      ${rv.r.weaknesses && rv.r.weaknesses.length ? `<h4>What's costing you</h4>${list(rv.r.weaknesses)}` : ""}
+      ${rv.r.patterns && rv.r.patterns.length ? `<h4>Patterns</h4>${list(rv.r.patterns)}` : ""}
+      ${rv.r.suggestions && rv.r.suggestions.length ? `<h4>Things to try</h4>${list(rv.r.suggestions)}` : ""}
+      <div class="ai-foot"><span>Based on ${rv.trades} closed trades. Reviewed ${new Date(rv.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })} with ${esc(MODEL_NAMES[rv.model] || rv.model)}.</span></div></div>` : "") +
+      (REVIEW.err ? `<p class="calc-note" style="border-left-color:var(--down)">${esc(REVIEW.err)}</p>` : ""));
+  }
+  $("btnReview").textContent = rv ? "Run the AI review again" : "Review my trades with AI";
+  renderAlerts();
+}
+
+/* ---- Trade dialog ---- */
+const localNow = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
+let editing = null;
+function openTrade(opts){
+  opts = opts || {};
+  const t = opts.id ? S.trades.find(x => x.id === opts.id) : null;
+  editing = t ? t.id : null;
+  const sym = t ? t.sym : (opts.sym || ""), a = sym && S.data[sym] && S.data[sym].a && !S.data[sym].a.tooShort ? S.data[sym].a : null;
+  $("tdTitle").textContent = t ? (opts.sell ? `Sell ${t.sym}` : `Edit ${t.sym} trade`) : "Log a trade";
+  $("tSym").value = sym; $("tSym").disabled = !!t;
+  $("tBuyAt").value = t ? t.buyAt : localNow();
+  $("tBuyPx").value = t ? t.buyPx : (a ? a.price.toFixed(2) : "");
+  $("tAmt").value = t ? t.amount : (S.settings.amt || "");
+  $("tNote").value = t ? (t.note || "") : "";
+  $("tStop").value = t ? (t.stop || "") : (a ? a.stop.toFixed(2) : "");
+  $("tTarget").value = t ? (t.target || "") : (a ? a.target.toFixed(2) : "");
+  const showSell = !!(t && (opts.sell || t.sellPx));
+  $("tSellBox").hidden = !showSell; $("tAddSell").hidden = !t || showSell;
+  $("tSellAt").value = t && t.sellAt ? t.sellAt : localNow();
+  $("tSellPx").value = t && t.sellPx ? t.sellPx : (t && opts.sell && priceNow(t.sym) ? priceNow(t.sym).toFixed(2) : "");
+  $("tDelete").hidden = !t; $("tErr").textContent = "";
+  $("tSugg").innerHTML = a ? `Suggested stop ${fmt$(a.stop)} and target ${fmt$(a.target)} are filled in; change them to your own if you like.` : "Stop and target are optional. They power the alerts.";
+  $("dlgTrade").showModal();
+  (opts.sell ? $("tSellPx") : t ? $("tBuyPx") : $("tSym")).focus();
+}
+function saveTrade(){
+  const err = m => { $("tErr").textContent = m; };
+  const sym = $("tSym").value.trim().toUpperCase().replace(/\s+/g, "");
+  const buyAt = $("tBuyAt").value, buyPx = +$("tBuyPx").value, amount = +$("tAmt").value;
+  const stop = $("tStop").value === "" ? null : +$("tStop").value, target = $("tTarget").value === "" ? null : +$("tTarget").value;
+  const selling = !$("tSellBox").hidden, sellAt = selling ? $("tSellAt").value : null, sellPx = selling && $("tSellPx").value !== "" ? +$("tSellPx").value : null;
+  if (!/^[A-Z0-9.\-\/]{1,12}$/.test(sym)) return err("Enter a ticker, like AAPL.");
+  if (!buyAt) return err("Enter the date and time you bought.");
+  if (buyAt.slice(0, 10) > today()) return err("The purchase date can't be in the future.");
+  if (!(buyPx > 0)) return err("Enter the price per share you paid.");
+  if (!(amount > 0)) return err("Enter how much money you put in.");
+  if (selling && sellPx != null && !(sellPx > 0)) return err("Enter the price per share you sold at.");
+  if (selling && sellPx != null && (!sellAt || sellAt < buyAt)) return err("The sale date and time must be after the purchase.");
+  const now = Date.now();
+  if (editing){
+    const t = S.trades.find(x => x.id === editing); if (!t) return;
+    const redo = t.buyAt.slice(0, 10) !== buyAt.slice(0, 10) || t.buyPx !== buyPx;
+    Object.assign(t, { buyAt, buyPx, amount, note:$("tNote").value.trim(), stop, target, sellAt: sellPx != null ? sellAt : null, sellPx, updated:now });
+    if (redo){ t.snap = null; t.snapTries = 0; }
+  } else {
+    S.trades.push({ id:newId(), sym, buyAt, buyPx, amount, note:$("tNote").value.trim(), stop, target, sellAt: sellPx != null ? sellAt : null, sellPx, snap:null, created:now, updated:now });
+    if (!universe().includes(sym)){ loadCached(sym); }
+    kickoff();
+  }
+  saveTrades(); $("dlgTrade").close(); computeAll(); renderAll(); fillSnapshots();
+}
+function deleteTrade(){
+  if (!editing || !confirm("Delete this trade from your journal? This can't be undone.")) return;
+  S.tdel[editing] = Date.now(); S.trades = S.trades.filter(t => t.id !== editing);
+  saveTrades(); $("dlgTrade").close(); renderAll();
+}
+function downloadTradesCSV(){
+  const q = v => { const t = v == null ? "" : String(v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const head = ["Ticker","Bought","Buy price","Amount","Shares","Sold","Sell price","Profit or loss $","Return %","vs SPY %","Days held","Stop","Target","Score at purchase","Verdict at purchase","Note"];
+  const lines = [head.join(",")].concat(S.trades.map(t => { const c = tradeCalc(t), s = t.snap || {};
+    return [t.sym, t.buyAt.replace("T"," "), t.buyPx, t.amount, r2(c.shares), t.sellAt ? t.sellAt.replace("T"," ") : "", t.sellPx || "", r2(c.pl), r2(c.pct), r2(c.vsSpy), c.days, t.stop || "", t.target || "", s.score != null ? s.score : "", s.verdict ? VERDICT[s.verdict] : "", t.note || ""].map(q).join(","); }));
+  const blob = new Blob([lines.join("\n")], { type:"text/csv" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `swing-desk-trades-${today()}.csv`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
 /* ================= Actions ================= */
 function select(s){
   S.selected = s; LS.set("sd2.selected", s);
@@ -2100,7 +2809,7 @@ function toggleWatch(){
   const s = S.selected; if (!s) return;
   if (S.watch.includes(s)) S.watch = S.watch.filter(x => x !== s);
   else S.watch.push(s);
-  LS.set("sd2.watch", S.watch); renderAll();
+  S.watchAt = Date.now(); LS.set("sd2.watch", S.watch); LS.set("sd2.watchAt", S.watchAt); syncSoon(); renderAll();
 }
 function kickoff(){
   if (!S.td || !S.fh || !S.mv) return;
@@ -2128,6 +2837,18 @@ function saveSettings(){ LS.set("sd2.settings", S.settings); }
 $("tabDash").addEventListener("click", () => { S.tab = "dash"; renderAll(); });
 $("tabRes").addEventListener("click", () => { S.tab = "results"; renderAll(); });
 $("tabSec").addEventListener("click", () => { S.tab = "sectors"; renderAll(); });
+$("tabTrades").addEventListener("click", () => { S.tab = "trades"; renderAll(); fillSnapshots(); });
+$("btnLogTrade").addEventListener("click", () => openTrade({}));
+$("btnLogBuy").addEventListener("click", () => openTrade({ sym:S.selected }));
+$("btnReview").addEventListener("click", runReview);
+$("btnTradesCsv").addEventListener("click", downloadTradesCSV);
+$("tSave").addEventListener("click", saveTrade);
+$("tDelete").addEventListener("click", deleteTrade);
+$("tAddSell").addEventListener("click", () => { $("tSellBox").hidden = false; $("tAddSell").hidden = true; $("tSellAt").value = localNow(); const t = S.trades.find(x => x.id === editing); if (t && priceNow(t.sym)) $("tSellPx").value = priceNow(t.sym).toFixed(2); $("tSellPx").focus(); });
+$("tSym").addEventListener("change", e => {
+  const sym = e.target.value.trim().toUpperCase(); const a = S.data[sym] && S.data[sym].a && !S.data[sym].a.tooShort ? S.data[sym].a : null;
+  if (a && $("tBuyAt").value.slice(0, 10) === today()){ if (!$("tBuyPx").value) $("tBuyPx").value = a.price.toFixed(2); if (!$("tStop").value) $("tStop").value = a.stop.toFixed(2); if (!$("tTarget").value) $("tTarget").value = a.target.toFixed(2); }
+});
 $("btnScan").addEventListener("click", runScan);
 [["fSearch","q"],["fMin","min"],["fMax","max"]].forEach(([id,k]) => $(id).addEventListener("input", e => { S.f[k] = e.target.value; renderResults(); }));
 [["fSort","sort"],["fVerdict","verdict"],["fAI","ai"],["fSector","sector"]].forEach(([id,k]) => $(id).addEventListener("change", e => { S.f[k] = e.target.value; renderResults(); }));
@@ -2144,6 +2865,15 @@ $("lookInput").addEventListener("keydown", e => { if (e.key === "Enter") lookup(
 $("sortSel").addEventListener("change", renderWatch);
 $("btnWatch").addEventListener("click", toggleWatch);
 document.addEventListener("click", e => {
+  const tr = e.target.closest("[data-sell],[data-edit],[data-trade],[data-dismiss],[data-rule]");
+  if (tr){
+    if (tr.dataset.sell) openTrade({ id:tr.dataset.sell, sell:true });
+    else if (tr.dataset.edit) openTrade({ id:tr.dataset.edit });
+    else if (tr.dataset.trade){ S.tab = "trades"; renderAll(); }
+    else if (tr.dataset.dismiss){ const d = LS.get("sd2.dismissed", {}); d[tr.dataset.dismiss] = Date.now(); LS.set("sd2.dismissed", d); renderAlerts(); }
+    else if (tr.dataset.rule){ const k = tr.dataset.rule, v = tr.dataset.val; S.settings.rules[k] = v === "true" ? true : +v; saveSettings(); S.allDirty = true; computeAll(); renderAll(); notice("Rule updated. Scores and verdicts now use it. You can change it back in Settings under Scoring rules."); }
+    return;
+  }
   const sym = e.target.closest("[data-sym]");
   if (sym){ const fromOther = S.tab !== "dash"; S.tab = "dash"; select(sym.dataset.sym); if (fromOther || sym.classList.contains("pick") || sym.classList.contains("chip")) $("detail").scrollIntoView({ block:"start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); return; }
   const act = e.target.closest("[data-act]");
@@ -2181,36 +2911,52 @@ document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click
 document.querySelectorAll("[data-show]").forEach(b => b.addEventListener("click", () => { const i = $(b.dataset.show); const show = i.type === "password"; i.type = show ? "text" : "password"; b.textContent = show ? "Hide" : "Show"; }));
 $("btnHelp").addEventListener("click", () => dlgH.showModal());
 function openSettings(){
-  $("setTd").value = S.td; $("setFh").value = S.fh; $("setMv").value = S.mv; $("setAi").value = S.ai;
-  ["setTd","setFh","setMv","setAi"].forEach(id => $(id).type = "password");
+  $("setTd").value = S.td; $("setFh").value = S.fh; $("setMv").value = S.mv; $("setAi").value = S.ai; $("setGh").value = S.gh;
+  ["setTd","setFh","setMv","setAi","setGh"].forEach(id => $(id).type = "password");
+  ["ai","gh","td","fh","mv"].forEach(k => $("exp_" + k).value = S.settings.expiry[k] || "");
+  $("setNotify").checked = !!S.settings.notify;
+  const R = S.settings.rules; $("rBuy").value = R.buyScore; $("rEarn").value = R.earnDays; $("rRR").value = R.rrMin; $("rRSI").value = R.rsiMax; $("rDist").value = R.maxDist || ""; $("rMkt").checked = !!R.needMarketUp;
+  const al = KV.get("autolist", null);
+  $("listInfo").textContent = al ? `Automatic list: the ${al.list.length} most traded US stocks, last updated ${fmtDate(al.d)}. It refreshes monthly.` : "Automatic list: not built yet. The built-in list of 500 stocks is used until it is.";
   document.querySelectorAll("[data-show]").forEach(b => b.textContent = "Show");
   $("setModel").value = S.settings.aiModel; $("setCap").value = S.settings.aiCap;
-  $("setScan").value = S.scan.join(" "); $("setTheme").value = S.settings.theme;
+  $("setScan").value = S.extras.join(" "); $("setTheme").value = S.settings.theme;
   dlgS.showModal();
 }
 $("btnSettings").addEventListener("click", openSettings);
-$("scanReset").addEventListener("click", () => { $("setScan").value = DEFAULT_SCAN.join(" "); });
+$("scanReset").addEventListener("click", () => { $("setScan").value = ""; });
+$("rulesReset").addEventListener("click", () => { const R = DEFAULT_RULES; $("rBuy").value = R.buyScore; $("rEarn").value = R.earnDays; $("rRR").value = R.rrMin; $("rRSI").value = R.rsiMax; $("rDist").value = ""; $("rMkt").checked = false; });
 $("setSave").addEventListener("click", () => {
-  const t = $("setTd").value.trim(), f = $("setFh").value.trim(), mk = $("setMv").value.trim(), a = $("setAi").value.trim();
+  const t = $("setTd").value.trim(), f = $("setFh").value.trim(), mk = $("setMv").value.trim(), a = $("setAi").value.trim(), g = $("setGh").value.trim();
+  const ghChanged = g !== S.gh; S.gh = g; LS.set("sd2.gh", g);
+  ["ai","gh","td","fh","mv"].forEach(k => S.settings.expiry[k] = $("exp_" + k).value || "");
+  const wantNotify = $("setNotify").checked;
+  if (wantNotify && window.Notification && Notification.permission === "default") Notification.requestPermission().then(() => renderAlerts());
+  S.settings.notify = wantNotify;
+  const num0 = (v, d, lo, hi) => { const n = +v; return v === "" || !isFinite(n) ? d : Math.min(hi, Math.max(lo, n)); };
+  S.settings.rules = { buyScore:num0($("rBuy").value, 70, 45, 100), earnDays:num0($("rEarn").value, 14, 0, 60), rrMin:num0($("rRR").value, 2, 0.5, 5), rsiMax:num0($("rRSI").value, 75, 50, 100), maxDist:num0($("rDist").value, 0, 0, 10), needMarketUp:$("rMkt").checked };
+  S.allDirty = true;
   const keysChanged = t !== S.td || f !== S.fh || mk !== S.mv;
   S.td = t; S.fh = f; S.mv = mk; S.ai = a;
   LS.set("sd2.td", t); LS.set("sd2.fh", f); LS.set("sd2.mv", mk); LS.set("sd2.ai", a);
   S.settings.aiModel = $("setModel").value; S.settings.theme = $("setTheme").value;
   S.settings.aiCap = Math.max(0, +$("setCap").value || 0);
   const list = uniq($("setScan").value.toUpperCase().split(/[\s,;]+/).filter(validTicker));
-  S.scan = list.slice(0, 600); LS.set("sd2.scan", S.scan);
+  S.extras = list.slice(0, 200); LS.set("sd2.extras", S.extras);
   saveSettings(); dlgS.close(); applyTheme(); clearNotice();
   if (keysChanged){ Object.values(S.data).forEach(d => { d.tdErr = null; }); wsClose(); wsFails = 0; startDay(); }
   else { universe().forEach(loadCached); kickoff(); startSweep(); }
-  if (list.length > 600) notice("Your scan list was trimmed to the first 600 stocks.");
+  if (list.length > 200) notice("Your extra stocks list was trimmed to the first 200.");
+  if (ghChanged){ LS.del("sd2.gist"); if (S.gh) syncNow(); else renderSyncStatus(); }
 });
 $("setClear").addEventListener("click", () => {
-  if (!confirm("This deletes the saved price history, news and AI results. The first-time download (about 45 minutes) will run again. Continue?")) return;
-  KV.keys().filter(k => /^(h|n|e|m|a|bad)\./.test(k) || k === "days" || k === "earnbulk").forEach(k => KV.del(k));
+  if (!confirm("This deletes the saved price history, news and AI results (not your trades). The first-time download (about 80 minutes) will run again. Continue?")) return;
+  KV.keys().filter(k => /^(h|n|e|m|a|bad|nai)\./.test(k) || k === "days" || k === "earnbulk" || k === "autolist").forEach(k => KV.del(k));
+  S.auto = null; S.names = {};
   S.data = {}; dlgS.close(); chartSym = null; startDay();
 });
 $("bkSave").addEventListener("click", () => {
-  const data = { app:"swing-desk", version:3, saved:new Date().toISOString(), td:S.td, fh:S.fh, mv:S.mv, ai:S.ai, watch:S.watch, scan:S.scan, settings:S.settings };
+  const data = { app:"swing-desk", version:4, saved:new Date().toISOString(), td:S.td, fh:S.fh, mv:S.mv, ai:S.ai, gh:S.gh, watch:S.watch, watchAt:S.watchAt, extras:S.extras, trades:cleanTrades(S.trades), tdel:S.tdel, settings:S.settings };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `swing-desk-backup-${today()}.json`;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -2222,15 +2968,27 @@ $("bkFile").addEventListener("change", async e => {
     const j = JSON.parse(await file.text());
     if (j.app !== "swing-desk") throw new Error();
     if (j.td != null) LS.set("sd2.td", j.td); if (j.fh != null) LS.set("sd2.fh", j.fh); if (j.mv != null) LS.set("sd2.mv", j.mv); if (j.ai != null) LS.set("sd2.ai", j.ai);
-    if (j.version >= 3) LS.set("sd2.scanver", 3);
-    if (Array.isArray(j.watch)) LS.set("sd2.watch", j.watch); if (Array.isArray(j.scan)) LS.set("sd2.scan", j.scan);
+    LS.set("sd2.scanver", 4);
+    if (j.gh != null) LS.set("sd2.gh", j.gh);
+    if (Array.isArray(j.watch)){ LS.set("sd2.watch", j.watch); LS.set("sd2.watchAt", j.watchAt || Date.now()); }
+    if (Array.isArray(j.extras)) LS.set("sd2.extras", j.extras);
+    if (Array.isArray(j.scan) && !j.extras){ LS.set("sd2.extras", j.scan.filter(x => !DEFAULT_SCAN.includes(x) && !OLD_DEFAULT.includes(x))); }
+    if (Array.isArray(j.trades)){
+      const map = {}; LS.get("sd2.trades", []).forEach(t => map[t.id] = t);
+      j.trades.forEach(t => { if (!map[t.id] || (t.updated || 0) > (map[t.id].updated || 0)) map[t.id] = t; });
+      LS.set("sd2.trades", Object.values(map)); LS.set("sd2.tdel", Object.assign({}, LS.get("sd2.tdel", {}), j.tdel || {}));
+    }
     if (j.settings) LS.set("sd2.settings", j.settings);
     location.reload();
   }catch(err){ dlgS.close(); notice("That file isn't a Swing Desk backup. Choose the .json file you downloaded from Settings.", true); }
   e.target.value = "";
 });
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { themeChart(); renderAll(); });
-document.addEventListener("visibilitychange", () => { if (!document.hidden && marketOpen() && Date.now() - S.lastSweep > 90000) startSweep(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  if (marketOpen() && Date.now() - S.lastSweep > 90000) startSweep();
+  if (S.gh && Date.now() - SYNC.last > 30000) syncNow();
+});
 
 /* ================= Clock ================= */
 setInterval(() => {
@@ -2239,6 +2997,8 @@ setInterval(() => {
     if (S.dayStarted && S.dayStarted !== today()) startDay();
     if (Date.now() - S.lastDayCheck > 30*60000){ S.lastDayCheck = Date.now(); S.skipDays = {}; dayLoop(); }
     if (Date.now() - S.lastCand > 60000) fhCandidates();
+    if (S.trades.some(t => !t.snap)) fillSnapshots();
+    if (S.gh && !document.hidden && Date.now() - SYNC.last > 120000 && !SYNC.busy) syncNow();
     if (open){
       wsConnect();
       const quoting = fhQueue.some(t => t.key.startsWith("q:"));
@@ -2248,7 +3008,7 @@ setInterval(() => {
     if (S.wasOpen === true && !open) startSweep();
   }
   S.wasOpen = open;
-  renderStatus();
+  renderStatus(); renderAlerts();
 }, 5000);
 
 /* ================= Start ================= */
@@ -2258,9 +3018,13 @@ setInterval(() => {
   S.wasOpen = marketOpen();
   await KV.init();
   migrateOldCache();
+  const al = KV.get("autolist", null);
+  if (al && al.list){ S.auto = al.list; S.names = al.names || {}; }
   if (!KV.ok) notice("This browser won't let the page save price history, so it will re-download each time you open it. Chrome or Edge work best; putting the site online with GitHub Pages also fixes this.", true);
   applyTheme();
   if (S.td && S.fh && S.mv) startDay(); else renderAll();
+  if (S.gh) syncNow();
+  fillSnapshots();
 })();
 })();
 </script>
