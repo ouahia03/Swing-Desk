@@ -1,0 +1,2268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Swing Desk</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{
+  --paper:#EEF0EA; --panel:#F9FAF6; --ink:#16242C; --muted:#5B6B72; --rule:#D5DAD0;
+  --up:#16734A; --down:#B3342B; --accent:#B7791F; --upbg:#DDEFE4; --downbg:#F6DEDB; --waitbg:#F5E8CF; --neutralbg:#E4E7E1;
+  --font:"Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#121A1F; --panel:#1A242A; --ink:#E6ECE8; --muted:#8FA0A6; --rule:#2A363D;
+    --up:#3DBE7F; --down:#EF6A5E; --accent:#E0A33A; --upbg:#173528; --downbg:#3A1E1C; --waitbg:#3A2F17; --neutralbg:#243038;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121A1F; --panel:#1A242A; --ink:#E6ECE8; --muted:#8FA0A6; --rule:#2A363D;
+  --up:#3DBE7F; --down:#EF6A5E; --accent:#E0A33A; --upbg:#173528; --downbg:#3A1E1C; --waitbg:#3A2F17; --neutralbg:#243038;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{margin:0;line-height:1.2}
+a{color:var(--accent)}
+.up{color:var(--up)} .down{color:var(--down)} .muted{color:var(--muted)}
+[hidden]{display:none !important}
+
+/* Header */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;padding:12px 20px;border-bottom:1px solid var(--rule);background:var(--panel)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-size:20px;font-weight:800;font-stretch:80%}
+.mark{width:22px;height:22px;border-radius:4px;background:linear-gradient(135deg,var(--up) 0 50%,var(--accent) 50% 100%)}
+.tabs{display:flex;gap:4px;background:var(--paper);padding:3px;border-radius:8px}
+.tab{border:0;background:none;padding:6px 14px;border-radius:6px;font-weight:700;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.status{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:13px;color:var(--muted);flex:1;min-width:200px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--neutralbg);color:var(--ink);font-weight:600}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.pill.open::before{background:var(--up)}
+.pill.live::before{background:var(--up);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+.prog{display:inline-flex;align-items:center;gap:8px}
+.prog .bar{width:110px;height:5px;border-radius:3px;background:var(--rule);overflow:hidden}
+.prog .bar i{display:block;height:100%;background:var(--accent);transition:width .4s}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--rule);background:var(--panel);padding:7px 14px;border-radius:6px;font-weight:600;font-size:14px}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.small{padding:4px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:13px;padding:0}
+.linkbtn:hover{color:var(--ink)}
+.notice{margin:12px 20px 0;padding:10px 14px;border-radius:6px;border-left:4px solid var(--accent);background:var(--panel);font-size:14px}
+.notice.err{border-left-color:var(--down)}
+
+.wrap{max-width:1500px;margin:0 auto;padding:20px}
+@media (max-width:900px){.wrap{padding:14px}.top{padding:10px 14px}}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:18px}
+
+/* Top 5 */
+.top5{margin-bottom:20px}
+.t5-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;margin-bottom:12px}
+.t5-head h2{font-size:22px;font-weight:800;font-stretch:78%}
+.t5-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.pick{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"rank sym score" "rank nm score" "meta meta meta" "tgt tgt tgt";gap:0 10px;text-align:left;border:1px solid var(--rule);background:var(--paper);border-radius:8px;padding:12px}
+.pick:hover{border-color:var(--up)}
+.pk-rank{grid-area:rank;font-size:13px;font-weight:700;color:var(--muted);padding-top:3px}
+.pk-sym{grid-area:sym;font-weight:800;font-stretch:80%;font-size:20px;line-height:1.1}
+.pk-nm{grid-area:nm;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-score{grid-area:score;font-size:30px;font-weight:800;font-stretch:68%;color:var(--up);line-height:1}
+.pk-meta{grid-area:meta;font-size:13px;margin-top:8px}
+.pk-tgt{grid-area:tgt;font-size:12px;color:var(--muted)}
+.t5-empty p{margin:0 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--rule);background:var(--paper);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600}
+.chip:hover{border-color:var(--ink)}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px}
+@media (max-width:900px){.layout{grid-template-columns:1fr;gap:14px}}
+.side{align-self:start}
+.side h2{font-size:17px;font-weight:700}
+.side-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 8px}
+.side-head select{border:1px solid var(--rule);background:var(--paper);border-radius:6px;padding:4px 8px;font-size:13px}
+.lookup{display:flex;gap:6px}
+.lookup input{flex:1;min-width:0;border:1px solid var(--rule);background:var(--paper);border-radius:6px;padding:7px 10px;text-transform:uppercase}
+.lookup input::placeholder{text-transform:none;color:var(--muted)}
+.list{list-style:none;margin:0;padding:0}
+.row{width:100%;display:grid;grid-template-columns:1fr auto;grid-template-areas:"sym px" "nm ch" "badge badge";gap:0 10px;text-align:left;border:0;border-top:1px solid var(--rule);background:transparent;padding:10px 8px}
+.list li:first-child .row{border-top:0}
+.row:hover{background:var(--paper)}
+.row[aria-current="true"]{background:var(--paper);box-shadow:inset 3px 0 0 var(--accent)}
+.row .sym{grid-area:sym;font-weight:800;font-stretch:85%;font-size:17px}
+.row .nm{grid-area:nm;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .px{grid-area:px;text-align:right;font-weight:600}
+.row .ch{grid-area:ch;text-align:right;font-size:13px}
+.row .bw{grid-area:badge;margin-top:6px}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px;background:var(--neutralbg)}
+.b-buy{background:var(--up);color:var(--panel)}
+.b-wait{background:var(--waitbg);color:var(--accent)}
+.b-not{background:var(--downbg);color:var(--down)}
+.b-pending{background:transparent;color:var(--muted);padding-left:0}
+.hint{font-size:12px;color:var(--muted);margin:12px 0 0}
+
+/* Detail */
+.detail{min-width:0}
+.hero{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:18px}
+.ticker{font-size:clamp(44px,7vw,72px);font-weight:800;font-stretch:66%;line-height:.9}
+.cname{color:var(--muted);font-size:14px;margin-top:6px}
+.pxbox{text-align:right;margin-left:auto}
+.price{font-size:clamp(28px,4vw,40px);font-weight:700;font-stretch:85%;line-height:1}
+.chg{font-weight:600;margin-top:4px}
+.hero-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:8px}
+
+/* Verdict: the bold element */
+.vblock{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 22px;align-items:center;padding:16px 18px;border-radius:10px;margin-bottom:18px;background:var(--neutralbg)}
+.vblock.v-buy{background:var(--upbg)} .vblock.v-wait{background:var(--waitbg)} .vblock.v-not{background:var(--downbg)}
+.vnum{font-size:78px;font-weight:800;font-stretch:62%;line-height:.85;text-align:center}
+.vof{display:block;font-size:12px;font-weight:600;color:var(--muted);text-align:center;margin-top:4px}
+.v-buy .vnum,.v-buy .vlabel{color:var(--up)} .v-wait .vnum,.v-wait .vlabel{color:var(--accent)} .v-not .vnum,.v-not .vlabel{color:var(--down)}
+.vlabel{font-size:28px;font-weight:800;font-stretch:78%;line-height:1.1}
+.vhead{margin:4px 0 0;font-size:15px}
+.vwait{margin:6px 0 0;font-size:14px}
+.gauge{position:relative;display:flex;height:10px;border-radius:5px;overflow:hidden;margin-top:12px}
+.gauge span{display:block;height:100%}
+.gwrap{position:relative}
+.needle{position:absolute;top:7px;width:6px;height:18px;margin-left:-3px;border-radius:3px;background:var(--ink);border:2px solid var(--panel);transition:left .5s ease}
+.glabels{display:flex;font-size:11px;color:var(--muted);margin-top:4px}
+.glabels span{text-align:center}
+@media (max-width:560px){.vblock{grid-template-columns:1fr}.vnum{text-align:left}.vof{text-align:left}}
+
+.chartbox{position:relative;height:380px;border:1px solid var(--rule);border-radius:8px;overflow:hidden;background:var(--panel)}
+#chart{position:absolute;inset:0}
+.chartmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin:8px 0 20px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.legend .dash{background:none;border-top:2px dashed currentColor;height:0}
+.credit{margin-left:auto}
+.credit a{color:var(--muted)}
+
+.cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:22px}
+@media (max-width:1150px){.cols{grid-template-columns:1fr}}
+.panel h3{font-size:17px;font-weight:800;font-stretch:85%;margin-bottom:10px}
+.section{margin-top:24px;padding-top:20px;border-top:1px solid var(--rule)}
+
+.factors{list-style:none;margin:0;padding:0}
+.factors li{padding:9px 0;border-top:1px solid var(--rule)}
+.factors li:first-child{border-top:0;padding-top:0}
+.f-top{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.f-name{font-weight:700}
+.f-pts{font-weight:700}
+.f-bar{height:5px;border-radius:3px;background:var(--rule);margin:5px 0;overflow:hidden}
+.f-bar i{display:block;height:100%;border-radius:3px}
+.f-note{margin:0;font-size:13px;color:var(--muted)}
+
+.calc-in{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px}
+.calc-in label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.calc-in input{border:1px solid var(--rule);background:var(--paper);border-radius:6px;padding:7px 9px;width:100%;font-weight:600;color:var(--ink)}
+@media (max-width:480px){.calc-in{grid-template-columns:1fr 1fr}.calc-in label:first-child{grid-column:1/-1}}
+.toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin:10px 0}
+.calc-out{background:var(--paper);border-radius:8px;padding:14px;margin-top:8px}
+.calc-head{font-size:14px;margin-bottom:10px}
+.calc-line{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--rule);font-size:14px}
+.calc-line b{font-size:20px;font-stretch:82%}
+.calc-ratio{font-size:13px;color:var(--muted);margin-top:8px}
+.calc-note{font-size:13px;margin:8px 0 0;padding-left:10px;border-left:3px solid var(--accent)}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+
+.ai-box{border:1px solid var(--rule);border-radius:10px;padding:16px}
+.ai-verdict{font-size:22px;font-weight:800;font-stretch:80%}
+.ai-box ul{margin:4px 0 10px;padding-left:20px}
+.ai-box li{font-size:14px;margin:3px 0}
+.ai-box h4{margin:12px 0 2px;font-size:14px}
+.ai-foot{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:12px;color:var(--muted);margin-top:10px}
+
+.news{list-style:none;margin:0;padding:0}
+.news li{padding:10px 0;border-top:1px solid var(--rule)}
+.news li:first-child{border-top:0;padding-top:0}
+.news .when{font-size:12px;color:var(--muted)}
+.news a{color:var(--ink);font-weight:600;text-decoration:none}
+.news a:hover{text-decoration:underline}
+.news p{margin:3px 0 0;font-size:13px;color:var(--muted)}
+.earn{padding:10px 12px;border-radius:8px;background:var(--paper);font-size:14px;margin-bottom:12px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.stat{background:var(--panel);padding:10px 12px}
+.stat .k{font-size:12px;color:var(--muted)}
+.stat .v{font-weight:700;font-size:16px}
+
+/* Sectors */
+.sec-intro{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:14px}
+.sec-intro h2{font-size:26px;font-weight:800;font-stretch:76%}
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);border-radius:8px}
+.sectable{width:100%;border-collapse:collapse;min-width:720px}
+.sectable th,.sectable td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--rule)}
+.sectable th:first-child,.sectable td:first-child{text-align:left}
+.sectable thead th{background:var(--paper);font-size:13px}
+.sectable th button{background:none;border:0;font-weight:700;padding:0;color:var(--ink)}
+.sectable th button[aria-sort]::after{content:" ▾";color:var(--accent)}
+.sectable th button[aria-sort="ascending"]::after{content:" ▴"}
+.sectable tbody tr:last-child td{border-bottom:0}
+.sectable td{font-weight:700}
+.sectable tr.bench td{background:var(--paper)}
+.secname{background:none;border:0;padding:0;text-align:left;font-weight:700}
+.secname small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.secname:hover{text-decoration:underline}
+tr.open td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.sec-stocks{margin-top:18px}
+.sec-stocks table{width:100%;border-collapse:collapse}
+.sec-stocks td,.sec-stocks th{padding:8px 10px;border-bottom:1px solid var(--rule);text-align:right;font-size:14px}
+.sec-stocks th{font-size:12px;color:var(--muted);font-weight:600}
+.sec-stocks td:first-child,.sec-stocks th:first-child{text-align:left}
+
+/* Scan bar */
+.scanrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--rule)}
+.scaninfo{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted);flex:1;min-width:220px}
+.scaninfo .bar{display:block;height:6px;border-radius:3px;background:var(--rule);overflow:hidden;max-width:360px}
+.scaninfo .bar i{display:block;height:100%;background:var(--accent);transition:width .4s}
+.pk-ai{grid-area:ai;font-size:12px;margin-top:4px}
+.pick{grid-template-areas:"rank sym score" "rank nm score" "meta meta meta" "tgt tgt tgt" "ai ai ai"}
+.earnline{font-size:14px;margin-top:6px}
+.ai-sec{margin:0 0 20px;padding:16px 18px;border:1px solid var(--rule);border-radius:10px}
+.ai-sec h3{font-size:17px;font-weight:800;font-stretch:85%;margin-bottom:10px}
+.ai-sum{margin-bottom:14px}
+.ai-sum-head{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13px}
+.ai-sum p{margin:8px 0 0;font-size:15px;line-height:1.55}
+.ai-sum.empty p{font-size:14px;margin:0}
+.btn.big{padding:10px 20px;font-size:15px}
+.ai-box-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+/* Scan results */
+.filters{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.filters input,.filters select{border:1px solid var(--rule);background:var(--paper);border-radius:6px;padding:6px 8px;color:var(--ink)}
+.filters label{display:inline-flex;align-items:center;gap:6px}
+.filters input[type=search]{min-width:220px;flex:1;max-width:320px}
+.filters .short{width:80px}
+.filters.checks .toggle{margin:0}
+.restable{width:100%;border-collapse:collapse;min-width:1080px}
+.restable th,.restable td{padding:9px 10px;border-bottom:1px solid var(--rule);text-align:right;font-size:14px;vertical-align:top}
+.restable th{background:var(--paper);font-size:12px;color:var(--muted);font-weight:700;position:sticky;top:0}
+.restable th:first-child,.restable td:first-child,.restable th:nth-child(2),.restable td:nth-child(2),.restable .wide{text-align:left}
+.restable .wide{min-width:240px}
+.restable tbody tr{cursor:pointer}
+.restable tbody tr:hover td{background:var(--paper)}
+.restable small{display:block;font-size:12px;color:var(--muted);margin-top:3px;white-space:normal}
+.rs-sym{font-weight:800;font-stretch:85%;font-size:16px}
+.rs-score{font-weight:800;font-size:16px}
+.restable td:first-child small{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Onboarding + dialogs */
+.onboard{max-width:720px}
+.onboard h2{font-size:30px;font-weight:800;font-stretch:75%;margin-bottom:8px}
+.onboard h3{font-size:18px;margin:18px 0 4px}
+.onboard ol{padding-left:22px;margin:6px 0}
+.onboard li{margin:6px 0}
+.keyrow{display:flex;gap:8px;margin-top:10px}
+.keyrow input{flex:1;min-width:0;border:1px solid var(--rule);background:var(--paper);border-radius:6px;padding:9px 12px}
+.done-tag{color:var(--up);font-weight:700;font-size:14px}
+dialog{border:1px solid var(--rule);border-radius:12px;background:var(--panel);color:var(--ink);padding:0;width:min(680px,calc(100vw - 24px));max-height:calc(100vh - 40px)}
+dialog::backdrop{background:rgba(10,16,20,.5)}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--panel);z-index:1}
+.dlg-head h2{font-size:19px;font-weight:800;font-stretch:85%}
+.dlg-body{padding:16px 20px 20px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
+.field label{font-weight:600;font-size:14px}
+.field input,.field select,.field textarea{border:1px solid var(--rule);background:var(--paper);border-radius:6px;padding:8px 10px}
+.field textarea{min-height:110px;resize:vertical;text-transform:uppercase}
+.field small{color:var(--muted);font-size:12px}
+.field .inline{display:flex;gap:8px;align-items:center}
+.field .inline input{flex:1;min-width:0}
+fieldset{border:1px solid var(--rule);border-radius:8px;padding:12px 14px 2px;margin:0 0 16px}
+legend{font-weight:700;font-size:14px;padding:0 6px}
+.help h3{font-size:16px;margin:18px 0 6px}
+.help p,.help li{font-size:14px}
+.help dt{font-weight:700;margin-top:10px;font-size:14px}
+.help dd{margin:2px 0 0;font-size:14px;color:var(--muted)}
+.help table{border-collapse:collapse;font-size:14px}
+.help td{padding:3px 12px 3px 0}
+footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="mark" aria-hidden="true"></span><h1>Swing Desk</h1></div>
+  <div class="tabs" role="tablist" aria-label="Views">
+    <button class="tab" role="tab" id="tabDash" aria-selected="true" type="button">Dashboard</button>
+    <button class="tab" role="tab" id="tabRes" aria-selected="false" type="button">Scan Results</button>
+    <button class="tab" role="tab" id="tabSec" aria-selected="false" type="button">Sectors</button>
+  </div>
+  <div class="status" aria-live="polite">
+    <span id="mkt" class="pill">Checking market…</span>
+    <span id="live" class="pill live" hidden>Live prices</span>
+    <span id="prog" class="prog" hidden><span id="progText"></span><span class="bar"><i id="progBar"></i></span></span>
+    <span id="upd"></span>
+  </div>
+  <div class="actions">
+    <button class="btn" id="btnRefresh" type="button">Refresh now</button>
+    <button class="btn" id="btnSettings" type="button">Settings</button>
+    <button class="btn" id="btnHelp" type="button">Help</button>
+  </div>
+</header>
+<div id="notice" class="notice" role="status" hidden></div>
+
+<div class="wrap">
+  <!-- Onboarding -->
+  <div id="onboard" class="card onboard" hidden>
+    <h2>Connect your free market data</h2>
+    <p>Swing Desk uses three free data services. Each takes about two minutes to set up, and none needs a credit card.</p>
+    <div id="obTd">
+      <h3>Twelve Data (price history) <span id="obTdDone" class="done-tag" hidden>Connected</span></h3>
+      <div id="obTdSteps">
+        <ol>
+          <li>Go to <a href="https://twelvedata.com" target="_blank" rel="noopener">twelvedata.com</a> and click <b>Sign up</b>.</li>
+          <li>Confirm your email if asked, then log in.</li>
+          <li>Open the <b>API Keys</b> page from the menu and copy your key.</li>
+        </ol>
+        <div class="keyrow"><input id="obTdKey" type="password" placeholder="Paste your Twelve Data key" autocomplete="off" aria-label="Twelve Data API key"></div>
+      </div>
+    </div>
+    <div id="obFh">
+      <h3>Finnhub (live prices, news, earnings) <span id="obFhDone" class="done-tag" hidden>Connected</span></h3>
+      <div id="obFhSteps">
+        <ol>
+          <li>Go to <a href="https://finnhub.io" target="_blank" rel="noopener">finnhub.io</a> and click <b>Get free API key</b>.</li>
+          <li>Sign up with your email and confirm it if asked.</li>
+          <li>Your key appears on the dashboard right after you log in. Copy it.</li>
+        </ol>
+        <div class="keyrow"><input id="obFhKey" type="password" placeholder="Paste your Finnhub key" autocomplete="off" aria-label="Finnhub API key"></div>
+      </div>
+    </div>
+    <div id="obMv">
+      <h3>Massive (daily prices for all 500 stocks) <span id="obMvDone" class="done-tag" hidden>Connected</span></h3>
+      <div id="obMvSteps">
+        <ol>
+          <li>Go to <a href="https://massive.com" target="_blank" rel="noopener">massive.com</a> (formerly Polygon.io) and click <b>Sign up</b> or <b>Get your free API key</b>.</li>
+          <li>Create an account with your email and choose the free <b>Basic</b> plan if asked.</li>
+          <li>Open <b>API Keys</b> in your dashboard and copy the default key.</li>
+        </ol>
+        <div class="keyrow"><input id="obMvKey" type="password" placeholder="Paste your Massive key" autocomplete="off" aria-label="Massive API key"></div>
+      </div>
+    </div>
+    <div class="keyrow"><button class="btn primary" id="obSave" type="button">Save keys and start</button></div>
+    <p class="hint">Keys are saved only in this browser on this device. They are never written into the file. The optional AI key can be added later in Settings.</p>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="viewDash">
+    <section class="card top5" id="top5" aria-labelledby="t5title">
+      <div class="scanrow">
+        <button class="btn primary" id="btnScan" type="button">Run AI scan</button>
+        <div class="scaninfo"><span id="scanInfo"></span><span class="bar" id="scanBar" hidden><i id="scanBarFill"></i></span></div>
+      </div>
+      <div class="t5-head"><h2 id="t5title">Top buys right now</h2><span class="muted" id="t5sub"></span></div>
+      <div id="t5body"></div>
+    </section>
+
+    <div class="layout">
+      <aside class="card side" aria-label="Look up and watchlist">
+        <div class="lookup">
+          <input id="lookInput" type="text" placeholder="Look up any ticker, e.g. TSLA" autocomplete="off" spellcheck="false" aria-label="Ticker to look up">
+          <button class="btn" id="lookBtn" type="button">Look up</button>
+        </div>
+        <div class="side-head">
+          <h2>Watchlist</h2>
+          <select id="sortSel" aria-label="Sort watchlist">
+            <option value="mine">Your order</option>
+            <option value="score">Highest score first</option>
+            <option value="move">Biggest movers</option>
+          </select>
+        </div>
+        <ul class="list" id="watchList"></ul>
+        <p class="hint" id="watchHint"></p>
+      </aside>
+
+      <section class="card detail" id="detail" aria-label="Stock details">
+        <div id="detEmpty"><p class="muted" style="margin:0">Pick a stock from your watchlist or the top buys, or look up any ticker.</p></div>
+        <div id="detBody" hidden>
+          <div class="hero">
+            <div><div class="ticker" id="hTicker"></div><div class="cname" id="hName"></div></div>
+            <div class="pxbox">
+              <div class="price" id="hPrice"></div>
+              <div class="chg" id="hChg"></div>
+              <div class="earnline" id="hEarn"></div>
+              <div class="hero-actions"><button class="linkbtn" id="btnWatch" type="button"></button></div>
+            </div>
+          </div>
+
+          <div id="verdict"></div>
+
+          <section class="ai-sec" aria-labelledby="aiTitle">
+            <h3 id="aiTitle">AI second opinion</h3>
+            <div id="aiSummary"></div>
+            <div id="aiBox"></div>
+            <p class="hint">AI opinions can be wrong. Use them alongside the chart, not instead of it.</p>
+          </section>
+
+          <div class="chartbox"><div id="chart"></div><div class="chartmsg" id="chartMsg" hidden></div></div>
+          <div class="legend">
+            <span><i style="background:var(--accent)"></i>20-day average</span>
+            <span><i style="background:var(--ink)"></i>50-day average</span>
+            <span class="up"><i class="dash"></i>Support</span>
+            <span class="down"><i class="dash"></i>Resistance</span>
+            <span class="credit">Charts by <a href="https://www.tradingview.com/lightweight-charts/" target="_blank" rel="noopener">TradingView Lightweight Charts</a></span>
+          </div>
+
+          <div class="cols">
+            <div class="panel">
+              <h3>How the score breaks down</h3>
+              <ul class="factors" id="factors"></ul>
+            </div>
+            <div class="panel">
+              <h3>Profit calculator</h3>
+              <div class="calc-in">
+                <label>Amount to invest ($)<input id="cAmt" type="number" min="0" step="100" inputmode="decimal"></label>
+                <label>Target gain (%)<input id="cGain" type="number" min="0" step="0.5" inputmode="decimal"></label>
+                <label>Max loss (%)<input id="cLoss" type="number" min="0" step="0.5" inputmode="decimal"></label>
+              </div>
+              <label class="toggle"><input id="cWhole" type="checkbox"> Whole shares only</label>
+              <div id="calcSugg" class="sugg"></div>
+              <div id="calcOut"></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3 style="font-size:17px;font-weight:800;font-stretch:85%;margin-bottom:10px">Recent news</h3>
+            <div id="newsBox"></div>
+          </div>
+
+          <div class="section">
+            <div class="stats" id="stats"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Scan Results -->
+  <div id="viewRes" hidden>
+    <section class="card">
+      <div class="sec-intro"><h2>Scan results</h2><span class="muted">Click any row to open that stock.</span></div>
+      <div class="filters">
+        <input id="fSearch" type="search" placeholder="Search ticker or company" aria-label="Search ticker or company">
+        <label>Sort <select id="fSort">
+          <option value="score_desc">Score: best first</option><option value="score_asc">Score: worst first</option>
+          <option value="ai">AI verdict</option><option value="move">Biggest movers today</option>
+          <option value="m1">1-month performance</option><option value="rr">Reward to risk</option>
+          <option value="earn">Soonest earnings</option><option value="alpha">A to Z</option></select></label>
+        <label>Verdict <select id="fVerdict"><option value="all">All</option><option value="buy">Good buy</option><option value="wait">I would wait</option><option value="not">Not a good buy</option></select></label>
+        <label>AI verdict <select id="fAI"><option value="all">All</option><option value="good_buy">Good buy</option><option value="wait">I would wait</option><option value="not_good">Not a good buy</option><option value="none">Not scanned</option></select></label>
+        <label>Sector <select id="fSector"><option value="all">All sectors</option></select></label>
+        <label>Price $<input id="fMin" type="number" min="0" inputmode="decimal" placeholder="min" class="short"> to $<input id="fMax" type="number" min="0" inputmode="decimal" placeholder="max" class="short"></label>
+      </div>
+      <div class="filters checks">
+        <label class="toggle"><input type="checkbox" id="fDisagree"> AI disagrees with the score</label>
+        <label class="toggle"><input type="checkbox" id="fEarn"> Hide earnings in the next 14 days</label>
+        <label class="toggle"><input type="checkbox" id="fWatch"> Watchlist only</label>
+        <button class="linkbtn" id="fReset" type="button">Clear filters</button>
+        <button class="btn small" id="fCsv" type="button" style="margin-left:auto">Download spreadsheet (CSV)</button>
+      </div>
+      <p class="hint" id="resCount" style="margin:4px 0 10px"></p>
+      <div class="tablewrap"><table class="restable" id="resTable"></table></div>
+    </section>
+  </div>
+
+  <!-- Sectors -->
+  <div id="viewSec" hidden>
+    <section class="card">
+      <div class="sec-intro"><h2>Sector performance</h2><span class="muted">Click a column to sort. Click a sector to see its stocks.</span></div>
+      <div class="tablewrap"><table class="sectable" id="secTable"></table></div>
+      <div id="secStocks" class="sec-stocks"></div>
+    </section>
+  </div>
+</div>
+
+<footer>Swing Desk is a personal screening tool. Scores, verdicts and AI opinions can be wrong; nothing here is financial advice. Free data may be delayed.</footer>
+
+<dialog id="dlgSettings" aria-labelledby="setTitle">
+  <div class="dlg-head"><h2 id="setTitle">Settings</h2><button class="btn" type="button" data-close>Close</button></div>
+  <div class="dlg-body">
+    <fieldset><legend>Data keys</legend>
+      <div class="field"><label for="setTd">Twelve Data key</label><div class="inline"><input id="setTd" type="password" autocomplete="off" spellcheck="false"><button class="btn small" type="button" data-show="setTd">Show</button></div></div>
+      <div class="field"><label for="setFh">Finnhub key</label><div class="inline"><input id="setFh" type="password" autocomplete="off" spellcheck="false"><button class="btn small" type="button" data-show="setFh">Show</button></div></div>
+      <div class="field"><label for="setMv">Massive key</label><div class="inline"><input id="setMv" type="password" autocomplete="off" spellcheck="false"><button class="btn small" type="button" data-show="setMv">Show</button></div></div>
+    </fieldset>
+    <fieldset><legend>AI second opinion (optional, paid)</legend>
+      <div class="field"><label for="setAi">Claude API key</label><div class="inline"><input id="setAi" type="password" autocomplete="off" spellcheck="false" placeholder="Starts with sk-ant-"><button class="btn small" type="button" data-show="setAi">Show</button></div>
+        <small>Get one at console.anthropic.com (steps are in Help).</small></div>
+      <div class="field"><label for="setModel">Model for "Analyze with AI"</label>
+        <select id="setModel">
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (cheapest, about half a cent per stock)</option>
+          <option value="claude-sonnet-5">Claude Sonnet 5 (more careful, costs more)</option>
+        </select>
+        <small>The AI scan of all stocks always uses Haiku 4.5 to keep it around $0.90 per scan.</small></div>
+      <div class="field"><label for="setCap">Daily AI spending limit ($)</label>
+        <input id="setCap" type="number" min="0" step="0.5" inputmode="decimal">
+        <small>AI stops for the day once this is reached. The site estimates Haiku costs from each answer; Sonnet costs aren't counted. Set 0 for no limit.</small></div>
+    </fieldset>
+    <div class="field"><label for="setScan">Stocks to scan for top buys</label>
+      <textarea id="setScan" spellcheck="false"></textarea>
+      <small>Separate tickers with spaces or commas. The built-in list has 500 heavily traded US stocks. <button class="linkbtn" type="button" id="scanReset">Reset to the built-in list</button></small></div>
+    <div class="field"><label for="setTheme">Appearance</label>
+      <select id="setTheme"><option value="system">Match my device</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <button class="btn primary" type="button" id="setSave">Save settings</button>
+    </div>
+    <fieldset style="margin-top:20px"><legend>Backup</legend>
+      <p class="hint" style="margin-top:0">Saves your keys, watchlist, scan list and settings to a file. Keep it private, since it contains your keys.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+        <button class="btn" type="button" id="bkSave">Download backup</button>
+        <button class="btn" type="button" id="bkLoad">Restore from backup</button>
+        <input type="file" id="bkFile" accept=".json,application/json" hidden>
+        <button class="btn" type="button" id="setClear">Clear saved price data</button>
+      </div>
+    </fieldset>
+  </div>
+</dialog>
+
+<dialog id="dlgHelp" aria-labelledby="helpTitle">
+  <div class="dlg-head"><h2 id="helpTitle">How Swing Desk works</h2><button class="btn" type="button" data-close>Close</button></div>
+  <div class="dlg-body help">
+    <p>Every stock gets a score from 1 to 100 built from ten factors, weighted by how much they matter for a 1 to 4 week swing trade. The score leads to one of three verdicts.</p>
+    <table>
+      <tr><td><b class="up">Good buy</b></td><td>Score 70 or higher, and no deal-breakers.</td></tr>
+      <tr><td><b style="color:var(--accent)">I would wait</b></td><td>Score 45 to 69, or a strong stock with a deal-breaker.</td></tr>
+      <tr><td><b class="down">Not a good buy</b></td><td>Score below 45, or the stock is in a clear downtrend.</td></tr>
+    </table>
+    <p>Deal-breakers keep a high score from becoming a Good buy: reward to risk worse than 2:1 at today's price, earnings within the next two weeks, RSI above 75, or a market selloff. When one applies, the verdict tells you what to wait for.</p>
+    <h3>The ten factors and their points</h3>
+    <table>
+      <tr><td>Trend and market structure</td><td>20</td></tr><tr><td>Catalyst (earnings timing, news flow)</td><td>12</td></tr>
+      <tr><td>Volume and accumulation</td><td>12</td></tr><tr><td>Support and resistance</td><td>11</td></tr>
+      <tr><td>Relative strength</td><td>10</td></tr><tr><td>Momentum, read in context</td><td>9</td></tr>
+      <tr><td>Reward to risk</td><td>9</td></tr><tr><td>Sector trend</td><td>7</td></tr>
+      <tr><td>Fundamentals</td><td>5</td></tr><tr><td>Overall market</td><td>5</td></tr>
+    </table>
+    <h3>Top buys</h3>
+    <p>The dashboard scores every stock in your scan list (500 by default) plus your watchlist, and shows up to five that currently rate Good buy, highest score first. If fewer qualify, it shows fewer. Some days the honest answer is none.</p>
+    <h3>The AI scan</h3>
+    <p>Click <b>Run AI scan</b> on the dashboard whenever you want. It gathers recent news for every stock, then has Claude Haiku review them 10 at a time using your framework. Each stock gets an AI verdict, a one-line reason and a short summary, which appear on its page and in the Scan Results tab. A full scan of 500 stocks takes about 10 to 15 minutes and costs roughly $0.90. You can stop it at any time, and results so far are kept. A brand-new Claude account may start with lower speed limits, so the first few scans can take a little longer.</p>
+    <h3>Analyze with AI</h3>
+    <p>This button, near the top of each stock's page, gives a deeper look at one stock: the full news, earnings history and every factor. It's about half a cent with Haiku.</p>
+    <h3>Scan Results tab</h3>
+    <p>Lists every scanned stock with its score, verdict, AI verdict and key numbers. Sort and filter to narrow it down, for example by sector or by stocks where the AI disagrees with the score. Download spreadsheet saves what you see as a file that opens in Excel or Google Sheets.</p>
+    <h3>Setting up the AI</h3>
+    <p>Go to <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> and create an account. Under Billing, add a small amount of prepaid credit, and set a monthly spend limit so it can never charge more than you choose. Then open API Keys, click Create Key, copy it, and paste it into Settings. The daily AI spending limit in Settings adds a second safety net.</p>
+    <h3>Terms you'll see</h3>
+    <dl>
+      <dt>20, 50 and 200-day averages</dt><dd>The average closing price over that many trading days. Price above rising averages usually means an uptrend.</dd>
+      <dt>Higher highs and higher lows</dt><dd>Each bounce peaks higher and each dip bottoms higher. That's the basic shape of an uptrend.</dd>
+      <dt>Support and resistance</dt><dd>Support is a price where buyers have stepped in before; resistance is where sellers have. Dashed lines on the chart mark the nearest of each.</dd>
+      <dt>Reward to risk</dt><dd>How far the stock could rise to its target, compared with how far it could fall to its stop. 2:1 means you could make twice what you risk.</dd>
+      <dt>Relative strength</dt><dd>How the stock has done compared with the S&amp;P 500 (SPY) and its sector over the past month.</dd>
+      <dt>RSI</dt><dd>A 0 to 100 gauge of how stretched recent moves are. It's judged against the trend: 30 in a downtrend can mean more selling, not a bounce.</dd>
+      <dt>MACD</dt><dd>A momentum gauge. Above its signal line and rising means momentum is improving.</dd>
+      <dt>ATR (daily range)</dt><dd>How much the stock typically moves in a day. Used to place stops and targets sensibly.</dd>
+      <dt>Accumulation</dt><dd>Volume on up days compared with down days. More volume on up days suggests buyers are building positions.</dd>
+    </dl>
+    <h3>How the data loads</h3>
+    <p>Massive provides one day of prices for every stock in a single request. The very first time, the site downloads about a year of history one day at a time (5 days a minute on the free plan), which takes about 45 minutes, once. Stocks can be scored after the first 60 days, about 12 minutes in. After that, each new trading day takes one request, so opening the page each morning takes a couple of minutes. Massive's free plan is end-of-day data, so the morning ranking uses the previous close; during market hours, Finnhub keeps your watchlist and the 50 strongest stocks up to date.</p>
+    <p>Finnhub provides news, earnings dates, company names and live prices, and allows about 60 requests a minute. Twelve Data provides the sector funds and fills in any stock added later. Everything only loads while this page is open.</p>
+    <h3>Making changes later</h3>
+    <p>Ask Claude for the change and download the new file. Save it with the same name, in the same folder, replacing the old one, and open it in the same browser. Your keys and lists are stored in the browser, so they carry over. If anything goes missing, use Restore from backup in Settings.</p>
+  </div>
+</dialog>
+<script>
+(function(){
+"use strict";
+
+/* ================= Small settings storage (localStorage) ================= */
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} },
+  keys(){ try{ return Object.keys(localStorage); }catch(e){ return []; } }
+};
+
+/* ================= Large data storage (IndexedDB, mirrored in memory) ================= */
+const KV = {
+  mem: new Map(), db: null, ok: false, pending: new Map(), timer: null,
+  async init(){
+    try{
+      if (!window.indexedDB) throw new Error("none");
+      this.db = await new Promise((res, rej) => {
+        const r = indexedDB.open("swingdesk", 1);
+        r.onupgradeneeded = () => r.result.createObjectStore("kv");
+        r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); r.onblocked = () => rej(new Error("blocked"));
+      });
+      const [keys, vals] = await new Promise((res, rej) => {
+        const tx = this.db.transaction("kv"), st = tx.objectStore("kv");
+        const k = st.getAllKeys(), v = st.getAll();
+        tx.oncomplete = () => res([k.result, v.result]); tx.onerror = () => rej(tx.error);
+      });
+      keys.forEach((k, i) => this.mem.set(k, vals[i]));
+      this.ok = true;
+    }catch(e){ this.ok = false; }
+  },
+  get(k, d){ return this.mem.has(k) ? this.mem.get(k) : d; },
+  set(k, v){ this.mem.set(k, v); if (this.ok){ this.pending.set(k, v); this.soon(); } },
+  del(k){ this.mem.delete(k); if (this.ok){ this.pending.set(k, undefined); this.soon(); } },
+  keys(){ return Array.from(this.mem.keys()); },
+  soon(){ if (!this.timer) this.timer = setTimeout(() => this.flush(), 1500); },
+  flush(){
+    this.timer = null; if (!this.ok || !this.pending.size) return;
+    const items = Array.from(this.pending); this.pending.clear();
+    try{ const tx = this.db.transaction("kv", "readwrite"), st = tx.objectStore("kv"); items.forEach(([k, v]) => v === undefined ? st.delete(k) : st.put(v, k)); }catch(e){}
+  }
+};
+window.addEventListener("pagehide", () => { flushHist(); KV.flush(); });
+
+/* ================= Reference data ================= */
+const SECTORS = { XLK:"Technology", XLC:"Communication Services", XLY:"Consumer Discretionary", XLP:"Consumer Staples", XLV:"Healthcare", XLF:"Financials", XLI:"Industrials", XLE:"Energy", XLB:"Materials", XLU:"Utilities", XLRE:"Real Estate" };
+const FUNDS = ["SPY","QQQ"].concat(Object.keys(SECTORS));
+const KNOWN_FUNDS = new Set(["DIA","IWM","VOO","VTI","IVV","SMH","SOXX","XBI","ARKK","TLT","GLD","SLV","USO","KRE","XRT","XHB","ITB","IBB","EEM","EFA","HYG","LQD","TQQQ","SQQQ","SPXL","UVXY"]);
+const SCAN_SRC = {
+"XLK":"AAPL MSFT NVDA AVGO ORCL CRM ADBE AMD CSCO ACN IBM INTU NOW TXN QCOM AMAT MU LRCX KLAC ADI PANW ANET SNPS CDNS CRWD MSI APH ROP ADSK FTNT NXPI MCHP TEL IT CTSH GLW HPQ HPE DELL WDC STX NTAP KEYS ZBRA TDY TYL PTC FICO FSLR ENPH ON MPWR TER SWKS QRVO JBL FFIV AKAM GEN EPAM VRSN SMCI PLTR APP MRVL WDAY DDOG CDW GDDY TRMB SNOW NET ZS MDB TEAM ARM TSM ASML MSTR IONQ SHOP",
+"XLC":"GOOGL META NFLX DIS TMUS VZ T CMCSA CHTR EA TTWO WBD OMC LYV MTCH FOXA NWSA TKO RBLX SPOT ROKU PINS SNAP",
+"XLY":"AMZN TSLA HD MCD LOW BKNG TJX SBUX NKE CMG ORLY AZO MAR HLT ROST ABNB GM F DHI LEN PHM NVR YUM DRI LULU EBAY EXPE RCL CCL NCLH LVS WYNN MGM GPC LKQ BBY ULTA TSCO POOL DPZ KMX APTV HAS TPR RL GRMN DECK CZR DASH RIVN CVNA DKNG",
+"XLP":"WMT COST PG KO PEP PM MO MDLZ CL KMB GIS KHC HSY STZ KDP MNST SYY KR TGT DG DLTR EL CHD CLX KVUE ADM TSN HRL CAG CPB SJM MKC BG TAP LW",
+"XLV":"LLY UNH JNJ ABBV MRK PFE TMO ABT DHR ISRG AMGN VRTX GILD BMY SYK BSX MDT ELV CI CVS HCA MCK COR CAH REGN ZTS BDX EW IDXX IQV A RMD DXCM GEHC HUM CNC MTD WAT BIIB MRNA STE ZBH BAX HOLX LH DGX COO ALGN PODD INCY TECH CRL VTRS UHS DVA MOH RVTY WST SOLV HSIC",
+"XLF":"JPM V MA BAC WFC GS MS C SCHW BLK AXP SPGI PGR CB MMC ICE CME AON MCO USB PNC TFC COF MET AIG PRU AFL ALL TRV AJG BK STT NTRS FITB MTB HBAN RF KEY CFG PYPL FIS GPN MSCI NDAQ CBOE RJF AMP TROW BEN IVZ HIG CINF L WRB ACGL EG BRO GL AIZ SYF COIN HOOD KKR BX APO ARES SOFI AFRM XYZ",
+"XLI":"GE CAT RTX HON UNP BA DE LMT UPS ETN ADP GD NOC ITW EMR WM MMM CSX NSC FDX PH TT CARR OTIS JCI PCAR CMI GWW FAST URI ODFL CTAS RSG PAYX VRSK EFX LHX TDG HWM AME ROK XYL DOV IR SWK SNA PNR MAS BLDR J PWR HUBB LII EXPD CHRW JBHT DAL UAL LUV AXON LDOS GEV VRT UBER CPRT TXT HII ALLE AOS NDSN IEX RKLB",
+"XLE":"XOM CVX COP EOG SLB OXY PSX MPC VLO WMB KMI OKE DVN FANG HAL BKR CTRA EQT TRGP APA EXE",
+"XLB":"LIN SHW APD ECL FCX NEM DOW DD PPG NUE VMC MLM CTVA IFF LYB PKG IP BALL AMCR STLD CF MOS ALB CE AVY EMN SW",
+"XLU":"NEE SO DUK CEG VST AEP SRE D EXC XEL PEG ED WEC EIX ETR DTE AEE PPL FE ES CNP CMS ATO NI LNT EVRG NRG AES PNW PCG AWK",
+"XLRE":"PLD AMT EQIX WELL SPG O PSA CCI DLR VICI CBRE EXR AVB EQR IRM VTR SBAC MAA ESS INVH ARE KIM REG HST UDR CPT BXP FRT DOC"
+};
+const SECTOR_HINT = {};
+const DEFAULT_SCAN = [];
+Object.keys(SCAN_SRC).forEach(x => SCAN_SRC[x].split(" ").forEach(s => { SECTOR_HINT[s] = x; DEFAULT_SCAN.push(s); }));
+const OLD_DEFAULT = "AAPL MSFT NVDA AVGO AMD ORCL CRM ADBE CSCO INTC QCOM MU AMAT LRCX NOW PLTR PANW ANET MRVL GOOGL META NFLX DIS TMUS VZ T CMCSA AMZN TSLA HD MCD NKE SBUX LOW BKNG TJX CMG ABNB WMT COST PG KO PEP PM MDLZ CL LLY UNH JNJ ABBV MRK PFE TMO ABT ISRG AMGN VRTX GILD JPM BAC WFC GS MS C SCHW BLK AXP V MA PYPL COIN CAT DE BA GE HON UPS RTX LMT UBER XOM CVX COP SLB OXY EOG LIN FCX NEM DOW NEE DUK SO CEG VST PLD AMT EQIX O SPG".split(" ");
+const INDUSTRY_MAP = [
+  [/real estate|reit/i, "XLRE"], [/utilit/i, "XLU"],
+  [/semicond|technolog|software|electronic|computer|it services|internet/i, "XLK"],
+  [/media|telecom|communicat|entertainment|interactive/i, "XLC"],
+  [/bank|financ|insur|capital market|credit|asset manag|thrift|exchange/i, "XLF"],
+  [/pharma|biotech|health|medical|life science|drug/i, "XLV"],
+  [/food|beverage|tobacco|consumer products|personal products|household products|staples/i, "XLP"],
+  [/oil|gas|energy|coal/i, "XLE"], [/chemical|metal|mining|material|packag|paper|steel/i, "XLB"],
+  [/retail|automobile|auto |hotel|restaurant|leisure|textile|apparel|luxury|consumer services|homebuild|household durables|distributor|diversified consumer/i, "XLY"],
+  [/aerospace|defense|airline|machinery|industrial|transport|logistic|road|rail|marine|building|construction|electrical|commercial services|professional|trading compan|conglomerate/i, "XLI"]
+];
+const HIST_DAYS = 230;     // weekdays of history to keep (about 11 months)
+const SCORE_MIN_BARS = 60;
+
+/* ================= Settings migration ================= */
+(function migrate(){
+  const oldKey = LS.get("sd.key", null);
+  if (oldKey && !LS.get("sd2.td", null)) LS.set("sd2.td", oldKey);
+  const ow = LS.get("sd.watch", null);
+  if (ow && !LS.get("sd2.watch", null)) LS.set("sd2.watch", ow);
+  const os = LS.get("sd.settings", null);
+  if (os && !LS.get("sd2.settings", null)) LS.set("sd2.settings", { theme: os.theme || "system" });
+  LS.keys().filter(k => k.startsWith("sd.")).forEach(k => LS.del(k));
+  if (LS.get("sd2.scanver", 0) < 3){
+    const saved = LS.get("sd2.scan", null);
+    const extra = Array.isArray(saved) ? saved.filter(s => !OLD_DEFAULT.includes(s)) : [];
+    LS.set("sd2.scan", Array.from(new Set(DEFAULT_SCAN.concat(extra))));
+    LS.set("sd2.scanver", 3);
+  }
+})();
+
+/* ================= State ================= */
+const S = {
+  td: LS.get("sd2.td", ""), fh: LS.get("sd2.fh", ""), mv: LS.get("sd2.mv", ""), ai: LS.get("sd2.ai", ""),
+  watch: LS.get("sd2.watch", ["AAPL","MSFT","NVDA","AMD","SPY"]),
+  scan: LS.get("sd2.scan", DEFAULT_SCAN.slice()),
+  settings: Object.assign({ theme:"system", aiModel:"claude-haiku-4-5-20251001", aiCap:3, amt:2000, gain:10, loss:5, whole:false }, LS.get("sd2.settings", {})),
+  selected: LS.get("sd2.selected", null),
+  lookups: [], tab: "dash", data: {}, market: null,
+  prog: { dayTotal:0, dayDone:0, tdTotal:0, tdDone:0, fhTotal:0, fhDone:0 },
+  tdRunning: false, dayRunning: false, skipDays: {}, lastSweep: 0, lastVolRefresh: 0, lastDayCheck: 0, lastCand: 0, lastFull: 0,
+  dayStarted: null, wasOpen: null, allDirty: true, fundDirty: false,
+  secSort: { col:"m1", dir:-1 }, secOpen: null, lastUpdate: null, scanDoneAt: null,
+  f: { q:"", sort:"score_desc", verdict:"all", ai:"all", sector:"all", disagree:false, noEarn:false, watchOnly:false, min:"", max:"" }
+};
+if (S.settings.aiModel && !/haiku|sonnet/.test(S.settings.aiModel)) S.settings.aiModel = "claude-haiku-4-5-20251001";
+const D = s => S.data[s] || (S.data[s] = {});
+function touch(s, strong){
+  const d = D(s); d.dirty = true;
+  if (FUNDS.includes(s)){ if (strong) S.allDirty = true; else S.fundDirty = true; }
+}
+
+/* ================= Helpers ================= */
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const uniq = a => Array.from(new Set(a.filter(Boolean)));
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt$ = n => n == null || !isFinite(n) ? "–" : "$" + n.toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtN = (n, d=2) => n == null || !isFinite(n) ? "–" : n.toLocaleString("en-US",{minimumFractionDigits:d, maximumFractionDigits:d});
+const fmtPct = (n, d=2) => n == null || !isFinite(n) ? "–" : (n >= 0 ? "+" : "−") + Math.abs(n).toFixed(d) + "%";
+const compact = new Intl.NumberFormat("en-US",{notation:"compact", maximumFractionDigits:1});
+function setHTML(el, html){ if (el._h !== html){ el.innerHTML = html; el._h = html; } }
+function chunks(arr, n){ const out = []; for (let i=0;i<arr.length;i+=n) out.push(arr.slice(i,i+n)); return out; }
+const num = v => v == null || v === "" || isNaN(+v) ? null : +v;
+const byT = (a, b) => a.t < b.t ? -1 : a.t > b.t ? 1 : 0;
+
+const etFmt = new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",weekday:"short",hour12:false});
+function et(d = new Date()){
+  const p = {}; etFmt.formatToParts(d).forEach(x => p[x.type] = x.value);
+  const h = p.hour === "24" ? 0 : +p.hour;
+  return { date:`${p.year}-${p.month}-${p.day}`, h, m:+p.minute, wd:p.weekday, mins:h*60 + +p.minute };
+}
+const today = () => et().date;
+const etDateMs = ms => et(new Date(ms)).date;
+const addDays = (d, n) => new Date(Date.parse(d + "T12:00:00Z") + n*86400000).toISOString().slice(0,10);
+const daysBetween = (a, b) => Math.round((Date.parse(b + "T12:00:00Z") - Date.parse(a + "T12:00:00Z")) / 86400000);
+const fmtDate = d => new Date(d + "T12:00:00Z").toLocaleDateString("en-US",{month:"short", day:"numeric", timeZone:"UTC"});
+const isWeekday = d => { const w = new Date(d + "T12:00:00Z").getUTCDay(); return w > 0 && w < 6; };
+function marketOpen(){
+  const e = et();
+  if (e.wd === "Sat" || e.wd === "Sun" || S.holiday === e.date) return false;
+  return e.mins >= 570 && e.mins < 960;
+}
+const sessionFraction = () => Math.min(1, Math.max(0.1, (et().mins - 570) / 390));
+
+/* ================= Rate limits ================= */
+class Limiter{
+  constructor(perMin, gapMs){ this.per = perMin; this.gap = gapMs; this.q = []; this.last = 0; }
+  async take(n = 1){
+    for(;;){
+      const now = Date.now();
+      this.q = this.q.filter(x => now - x.t < 61000);
+      const used = this.q.reduce((a,b) => a + b.n, 0);
+      if (used + n <= this.per && now - this.last >= this.gap){ this.q.push({t:now, n}); this.last = now; return; }
+      const wait = used + n > this.per ? 61000 - (now - this.q[0].t) + 50 : this.gap - (now - this.last);
+      await sleep(Math.max(20, Math.min(wait, 2000)));
+    }
+  }
+}
+const tdLim = new Limiter(8, 0), fhLim = new Limiter(55, 150), mvLim = new Limiter(5, 0);
+function credits(){
+  const t = today(); let c = LS.get("sd2.credits", {date:t, used:0});
+  if (c.date !== t) c = {date:t, used:0};
+  return c;
+}
+function spend(n){ const c = credits(); c.used += n; LS.set("sd2.credits", c); }
+class ApiError extends Error{ constructor(msg, fatal){ super(msg); this.fatal = fatal; } }
+
+/* ================= Price history: storage ================= */
+const pack = b => [+b.t.replace(/-/g,""), Math.round(b.o*100), Math.round(b.h*100), Math.round(b.l*100), Math.round(b.c*100), Math.round(b.v || 0)];
+const unpack = a => { const s = String(a[0]); return { t:`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`, o:a[1]/100, h:a[2]/100, l:a[3]/100, c:a[4]/100, v:a[5] || 0 }; };
+const histQueue = new Set(); let histTimer = null;
+function saveHist(s){ histQueue.add(s); if (!histTimer) histTimer = setTimeout(flushHist, 3000); }
+function flushHist(){
+  histTimer = null;
+  histQueue.forEach(s => { const d = S.data[s]; if (d && d.bars) KV.set("h." + s, { d:d.hday || null, td:!!d.tdDone, b:d.bars.map(pack) }); });
+  histQueue.clear();
+}
+function okDays(){ const m = KV.get("days", { done:{} }); return Object.values(m.done).filter(v => v === "ok").length; }
+
+/* ================= Massive: whole-market daily prices ================= */
+let mvHost = "https://api.massive.com";
+async function mvDay(date){
+  await mvLim.take();
+  const path = `/v2/aggs/grouped/locale/us/market/stocks/${date}?adjusted=true&apiKey=${encodeURIComponent(S.mv)}`;
+  let res = null;
+  try{ res = await fetch(mvHost + path); }
+  catch(e){
+    if (mvHost.indexOf("massive") >= 0){ mvHost = "https://api.polygon.io"; try{ res = await fetch(mvHost + path); }catch(e2){} }
+    if (!res) throw new ApiError("Couldn't reach Massive. Check your internet connection and click Refresh now.", true);
+  }
+  let j = null; try{ j = await res.json(); }catch(e){}
+  const msg = j ? String(j.error || j.message || "") : "";
+  if (res.status === 401 || /api key|apikey|unknown api/i.test(msg)) throw new ApiError("Massive rejected your API key. Open Settings, paste it again, and save.", true);
+  if (res.status === 429) return { retry:true };
+  if (!res.ok || !j) return { notAvailable:true };
+  if (!Array.isArray(j.results) || !j.results.length) return { empty:true };
+  return { results:j.results };
+}
+function latestCandidate(){
+  const e = et();
+  let d = e.date;
+  if (!(isWeekday(d) && e.mins >= 17*60 + 30)){ d = addDays(d, -1); while (!isWeekday(d)) d = addDays(d, -1); }
+  return d;
+}
+function targetDates(){
+  const out = []; let d = latestCandidate();
+  while (out.length < HIST_DAYS){ if (isWeekday(d)) out.push(d); d = addDays(d, -1); }
+  return out;
+}
+function gUniverse(){ return universe().filter(s => !FUNDS.includes(s) && !KNOWN_FUNDS.has(s)); }
+function applyDay(date, results){
+  const want = new Set(gUniverse());
+  results.forEach(r => {
+    const s = r.T; if (!want.has(s) || !isFinite(r.c)) return;
+    const d = D(s); if (!d.bars) d.bars = [];
+    const bar = { t:date, o:r.o, h:r.h, l:r.l, c:r.c, v:Math.round(r.v || 0) };
+    const i = d.bars.findIndex(b => b.t === date);
+    if (i >= 0) d.bars[i] = bar;
+    else { d.bars.push(bar); if (d.bars.length > 1 && d.bars[d.bars.length-2].t > date) d.bars.sort(byT); }
+    if (d.bars.length > 260) d.bars.splice(0, d.bars.length - 260);
+    d.hday = today(); touch(s); saveHist(s);
+  });
+}
+async function dayLoop(){
+  if (S.dayRunning || !S.mv) return;
+  S.dayRunning = true;
+  try{
+    const dates = targetDates(), latest = dates[0];
+    const meta = KV.get("days", { done:{} });
+    const keep = new Set(dates);
+    Object.keys(meta.done).forEach(k => { if (!keep.has(k)) delete meta.done[k]; });
+    for(;;){
+      const todo = dates.filter(d => !meta.done[d] && !S.skipDays[d]);
+      S.prog.dayTotal = dates.length; S.prog.dayDone = dates.length - todo.length;
+      if (!todo.length) break;
+      const date = todo[0];
+      const r = await mvDay(date);
+      if (r.retry){ await sleep(15000); continue; }
+      if (r.notAvailable || r.empty){
+        if (date === latest || daysBetween(date, today()) <= 3) S.skipDays[date] = true;   // not published yet; try later
+        else { meta.done[date] = "empty"; KV.set("days", meta); }                           // market holiday
+        continue;
+      }
+      applyDay(date, r.results);
+      meta.done[date] = "ok"; KV.set("days", meta);
+      scheduleRender();
+    }
+  }catch(e){ notice(e.message, true); }
+  finally{ S.dayRunning = false; S.prog.dayTotal = 0; S.prog.dayDone = 0; tdLoop(); scheduleRender(); }
+}
+
+/* ================= Twelve Data: funds and missing history ================= */
+async function td(path, symbols, params){
+  await tdLim.take(symbols.length);
+  const url = new URL("https://api.twelvedata.com/" + path);
+  const all = Object.assign({ symbol: symbols.join(","), apikey: S.td }, params || {});
+  Object.keys(all).forEach(k => url.searchParams.set(k, all[k]));
+  let res;
+  try{ res = await fetch(url.toString()); }
+  catch(e){ throw new ApiError("Couldn't reach Twelve Data. Check your internet connection and click Refresh now.", true); }
+  spend(symbols.length);
+  let j;
+  try{ j = await res.json(); }catch(e){ throw new ApiError("Twelve Data sent back something unreadable. Try again shortly.", true); }
+  if (j && j.status === "error" && j.code !== undefined){
+    const code = +j.code;
+    if (code === 401) throw new ApiError("Twelve Data rejected your API key. Open Settings, paste it again, and save.", true);
+    if (code === 429) throw new ApiError("Twelve Data's free request limit was reached. The sector funds will finish loading after it resets (daily at midnight UTC).", true);
+    if (code >= 500) throw new ApiError("Twelve Data is having trouble right now. Try Refresh now in a few minutes.", true);
+    if (symbols.length > 1) throw new ApiError(j.message || "Twelve Data returned an error.", false);
+    return { [symbols[0]]: j };
+  }
+  return symbols.length === 1 ? { [symbols[0]]: j } : j;
+}
+function tdErrMsg(m, s){
+  if (/symbol/i.test(m || "") && /(not found|invalid|missing)/i.test(m)) return `No price data found for "${s}". Check the spelling.`;
+  if (/(plan|upgrade|available starting|grow|pro )/i.test(m || "")) return `${s} isn't included in the free data plans. Try a US stock or fund instead.`;
+  return m || `No data found for ${s}.`;
+}
+function tdPriority(s){
+  if (FUNDS.includes(s)) return 0;
+  if (s === S.selected || S.lookups.includes(s)) return 1;
+  if (S.watch.includes(s)) return 2;
+  return 3;
+}
+function needsHist(s){
+  const d = D(s);
+  if (d.tdErr) return false;
+  if (FUNDS.includes(s) || KNOWN_FUNDS.has(s)) return !(d.bars && d.hday === today());
+  if (d.tdDone) return false;
+  const ok = okDays();
+  if (ok < 20 || S.dayRunning) return false;                   // the daily download fills this in
+  const n = d.bars ? d.bars.length : 0;
+  return n < Math.max(SCORE_MIN_BARS, ok * 0.8);
+}
+async function tdLoop(){
+  if (S.tdRunning || !S.td) return;
+  S.tdRunning = true;
+  try{
+    for(;;){
+      const need = universe().filter(needsHist).sort((a,b) => tdPriority(a) - tdPriority(b));
+      S.prog.tdTotal = S.prog.tdDone + need.length;
+      if (!need.length) break;
+      const group = need.slice(0, 8);
+      if (credits().used + group.length > 795){ notice("Twelve Data's daily limit is nearly used up, so a few stocks will finish loading tomorrow.", true); break; }
+      let out;
+      try{ out = await td("time_series", group, { interval:"1day", outputsize:260 }); }
+      catch(e){ notice(e.message, true); if (e.fatal) break; group.forEach(s => D(s).tdErr = e.message); S.prog.tdDone += group.length; continue; }
+      group.forEach(s => {
+        const d = D(s), r = out[s];
+        if (!r || r.status === "error" || !Array.isArray(r.values)){
+          d.tdErr = tdErrMsg(r && r.message, s);
+          if (!FUNDS.includes(s)) KV.set("bad." + s, { d:today(), m:d.tdErr });
+          return;
+        }
+        const bars = r.values.map(v => ({ t:String(v.datetime).slice(0,10), o:+v.open, h:+v.high, l:+v.low, c:+v.close, v:num(v.volume) || 0 }))
+          .filter(b => isFinite(b.c) && b.c > 0).sort(byT);
+        d.bars = bars; d.hday = today(); d.tdErr = null;
+        if (!FUNDS.includes(s) && !KNOWN_FUNDS.has(s)) d.tdDone = true;
+        touch(s, true); saveHist(s);
+      });
+      S.prog.tdDone += group.length;
+      scheduleRender();
+    }
+  } finally { S.tdRunning = false; S.prog.tdTotal = 0; S.prog.tdDone = 0; startSweep(); scheduleRender(); }
+}
+async function volRefresh(){
+  S.lastVolRefresh = Date.now();
+  const syms = uniq(S.watch.concat(S.selected, topPicks().map(p => p.s))).filter(s => !isFund(s) && D(s).bars).slice(0, 16);
+  if (!syms.length || credits().used + syms.length > 760) return;
+  try{
+    for (const g of chunks(syms, 8)){
+      const out = await td("time_series", g, { interval:"1day", outputsize:2 });
+      g.forEach(s => {
+        const r = out[s]; const d = D(s);
+        if (!r || !Array.isArray(r.values) || !d.bars) return;
+        r.values.forEach(v => {
+          const t = String(v.datetime).slice(0,10), b = d.bars.find(x => x.t === t);
+          if (b) b.v = num(v.volume) || b.v;
+          else if (t > d.bars[d.bars.length-1].t) d.bars.push({ t, o:+v.open, h:+v.high, l:+v.low, c:+v.close, v:num(v.volume) || 0 });
+        });
+        touch(s);
+      });
+    }
+    scheduleRender();
+  }catch(e){}
+}
+
+/* ================= Finnhub ================= */
+async function fh(path, params){
+  for (let attempt = 0; attempt < 3; attempt++){
+    await fhLim.take();
+    const url = new URL("https://finnhub.io/api/v1/" + path);
+    Object.keys(params || {}).forEach(k => url.searchParams.set(k, params[k]));
+    url.searchParams.set("token", S.fh);
+    let res;
+    try{ res = await fetch(url.toString()); }
+    catch(e){ throw new ApiError("Couldn't reach Finnhub. Check your internet connection and click Refresh now.", true); }
+    if (res.status === 429){ await sleep(5000); continue; }
+    if (res.status === 401) throw new ApiError("Finnhub rejected your API key. Open Settings, paste it again, and save.", true);
+    if (!res.ok) return null;
+    try{ return await res.json(); }catch(e){ return null; }
+  }
+  return null;
+}
+const fhQueue = []; const fhInflight = new Set(); let fhRunning = false; let fhStopped = false;
+const DAILY_KIND = k => /^[pemnE]:/.test(k);
+function fhTask(key, pri, fn, replace){
+  if (!S.fh || fhStopped || fhInflight.has(key)) return false;
+  const i = fhQueue.findIndex(t => t.key === key);
+  if (i >= 0){ if (!replace) return false; fhQueue.splice(i, 1); if (DAILY_KIND(key)) S.prog.fhTotal--; }
+  fhQueue.push({ key, pri, fn });
+  if (DAILY_KIND(key)) S.prog.fhTotal++;
+  fhQueue.sort((a,b) => a.pri - b.pri);
+  runFh();
+  return true;
+}
+async function runFh(){
+  if (fhRunning) return;
+  fhRunning = true;
+  while (fhQueue.length && !fhStopped){
+    const t = fhQueue.shift();
+    fhInflight.add(t.key);
+    try{ await t.fn(); }
+    catch(e){ if (e.fatal){ notice(e.message, true); fhStopped = true; fhQueue.length = 0; } }
+    fhInflight.delete(t.key);
+    if (DAILY_KIND(t.key)) S.prog.fhDone++;
+    if (!fhQueue.some(x => DAILY_KIND(x.key))){ S.prog.fhTotal = 0; S.prog.fhDone = 0; }
+    scheduleRender();
+  }
+  fhRunning = false;
+}
+function isFund(s){ return FUNDS.includes(s) || KNOWN_FUNDS.has(s) || !!(S.data[s] && S.data[s].prof && S.data[s].prof.empty); }
+
+async function loadProfile(s){
+  const j = await fh("stock/profile2", { symbol:s });
+  if (j === null) return;
+  const d = D(s);
+  d.prof = j && j.name ? { name:j.name, ind:j.finnhubIndustry || "", ex:j.exchange || "" } : { empty:true };
+  KV.set("p." + s, d.prof); touch(s);
+}
+async function loadEarnBulk(){
+  const t = today(), map = {};
+  for (let k = 0; k < 9; k++){
+    const j = await fh("calendar/earnings", { from:addDays(t, k*7), to:addDays(t, k*7 + 6) });
+    ((j && j.earningsCalendar) || []).forEach(x => {
+      if (!x || !x.symbol || !x.date || x.date < t) return;
+      if (!map[x.symbol] || x.date < map[x.symbol].date) map[x.symbol] = { date:x.date, hour:x.hour || "", est:num(x.epsEstimate) };
+    });
+  }
+  gUniverse().forEach(s => {
+    const d = D(s);
+    if (d.earn && d.earn.d === t && d.earn.src === "sym") return;
+    d.earn = { d:t, next:map[s] || null, past:(d.earn && d.earn.past) || [], src:"bulk" };
+    KV.set("e." + s, d.earn); touch(s);
+  });
+  KV.set("earnbulk", t);
+}
+async function loadEarn(s){
+  const t = today();
+  const j = await fh("calendar/earnings", { symbol:s, from:addDays(t,-100), to:addDays(t,75) });
+  if (j === null) return;
+  const list = ((j && j.earningsCalendar) || []).filter(x => x.date).map(x => ({ date:x.date, hour:x.hour || "", est:num(x.epsEstimate), act:num(x.epsActual) })).sort((a,b) => a.date < b.date ? -1 : 1);
+  D(s).earn = { d:t, next:list.find(x => x.date >= t) || null, past:list.filter(x => x.date < t && x.act != null).slice(-2), src:"sym" };
+  KV.set("e." + s, D(s).earn); touch(s);
+}
+async function loadMet(s){
+  const j = await fh("stock/metric", { symbol:s, metric:"all" });
+  if (j === null) return;
+  const m = (j && j.metric) || {};
+  const pick = (...ks) => { for (const k of ks){ if (m[k] != null && isFinite(m[k])) return +m[k]; } return null; };
+  D(s).met = { d:today(), m:{ rg:pick("revenueGrowthTTMYoy"), eg:pick("epsGrowthTTMYoy"), nm:pick("netProfitMarginTTM"), de:pick("totalDebt/totalEquityQuarterly","totalDebt/totalEquityAnnual"), pe:pick("peTTM","peBasicExclExtraTTM","peExclExtraTTM") } };
+  KV.set("m." + s, D(s).met); touch(s);
+}
+async function loadNews(s){
+  const t = today();
+  const j = await fh("company-news", { symbol:s, from:addDays(t,-21), to:t });
+  if (j === null) return;
+  const arr = Array.isArray(j) ? j.filter(x => x && x.headline) : [];
+  const now = Date.now() / 1000;
+  const n7 = arr.filter(x => now - x.datetime <= 7*86400).length;
+  const items = arr.sort((a,b) => b.datetime - a.datetime).slice(0, 6)
+    .map(x => ({ h:String(x.headline).slice(0,180), s:String(x.summary || "").slice(0,200), src:x.source || "", t:x.datetime, u:/^https?:\/\//.test(x.url || "") ? x.url : "" }));
+  D(s).news = { d:t, at:Date.now(), n7, n21:arr.length - n7, items };
+  KV.set("n." + s, D(s).news); touch(s);
+}
+async function loadQuote(s){
+  const q = await fh("quote", { symbol:s });
+  if (!q || (!q.c && !q.t)) return;
+  const d = D(s);
+  d.qAt = Date.now();
+  d.q = { c:q.c, pc:q.pc, dp:q.dp, t:q.t };
+  if (q.t) mergeBar(d, etDateMs(q.t*1000), num(q.o), num(q.h), num(q.l), q.c);
+  touch(s);
+  S.lastUpdate = new Date();
+}
+function mergeBar(d, date, o, h, l, c){
+  if (!d.bars || !d.bars.length || !date || !c) return;
+  const last = d.bars[d.bars.length-1];
+  if (date === last.t){ last.c = c; if (h) last.h = Math.max(h, c); if (l) last.l = Math.min(l, c); if (o) last.o = o; }
+  else if (date > last.t) d.bars.push({ t:date, o:o || c, h:Math.max(h || c, c), l:Math.min(l || c, c), c, v:0 });
+}
+/* The shortlist that gets news, earnings checks and live prices through the day */
+function candidates(){
+  const top = stocksScanned().map(s => ({ s, sc:S.data[s].a.score })).sort((a,b) => b.sc - a.sc).slice(0, 50).map(x => x.s);
+  return uniq(S.watch.concat(S.selected, S.lookups, top)).filter(s => !isFund(s));
+}
+function fhDaily(){
+  if (!S.fh) return;
+  const t = today();
+  if (KV.get("earnbulk", null) !== t) fhTask("E:bulk", 1, loadEarnBulk);
+  const g = gUniverse();
+  g.forEach(s => { if (!D(s).prof) fhTask("p:" + s, tdPriority(s) === 3 ? 4 : 1, () => loadProfile(s)); });
+  // Fundamentals change quarterly: refresh the oldest 100 each day, so all 500 are covered weekly
+  g.filter(s => !isFund(s)).map(s => ({ s, d:D(s).met ? D(s).met.d : "0000" })).filter(x => x.d === "0000" || daysBetween(x.d, t) > 6)
+    .sort((a,b) => a.d < b.d ? -1 : 1).slice(0, 100).forEach(x => fhTask("m:" + x.s, 3.5, () => loadMet(x.s)));
+  fhCandidates();
+}
+function fhCandidates(){
+  if (!S.fh) return;
+  S.lastCand = Date.now();
+  const t = today();
+  candidates().forEach(s => {
+    const d = D(s), pri = tdPriority(s) < 3 ? 1.2 : 2.5;
+    if (!d.earn || d.earn.d !== t || d.earn.src !== "sym") fhTask("e:" + s, pri, () => loadEarn(s));
+    if (!d.news || d.news.d !== t) fhTask("n:" + s, pri + 0.1, () => loadNews(s));
+    if (!d.met || daysBetween(d.met.d, t) > 6) fhTask("m:" + s, pri + 0.2, () => loadMet(s));
+  });
+}
+function startSweep(){
+  if (!S.fh) return;
+  S.lastSweep = Date.now();
+  uniq(FUNDS.concat(candidates())).forEach(s => {
+    const d = D(s);
+    if (!d.bars || d.tdErr) return;
+    if (d.liveAt && Date.now() - d.liveAt < 60000) return;
+    if (d.qAt && Date.now() - d.qAt < 60000) return;
+    fhTask("q:" + s, S.watch.includes(s) || s === S.selected ? 1.5 : 5, () => loadQuote(s));
+  });
+}
+
+/* ---- WebSocket streaming for the watchlist ---- */
+let ws = null, wsSubs = new Set(), wsFails = 0, wsLive = false;
+function wsWanted(){ return uniq(S.watch.concat(S.selected, topPicks().map(p => p.s))).slice(0, 50); }
+function wsConnect(){
+  if (!S.fh || !marketOpen() || wsFails >= 5) return;
+  if (ws && ws.readyState <= 1){ wsSync(); return; }
+  try{ ws = new WebSocket("wss://ws.finnhub.io?token=" + encodeURIComponent(S.fh)); }catch(e){ wsFails++; return; }
+  wsSubs = new Set();
+  ws.onopen = () => { wsLive = true; wsFails = 0; wsSync(); renderStatus(); };
+  ws.onmessage = ev => {
+    let m; try{ m = JSON.parse(ev.data); }catch(e){ return; }
+    if (m.type === "trade" && Array.isArray(m.data)){
+      m.data.forEach(tr => {
+        const d = S.data[tr.s]; if (!d || !d.bars || !tr.p) return;
+        const date = etDateMs(tr.t), last = d.bars[d.bars.length-1];
+        if (date === last.t){ last.c = tr.p; last.h = Math.max(last.h, tr.p); last.l = Math.min(last.l, tr.p); }
+        else if (date > last.t) d.bars.push({ t:date, o:tr.p, h:tr.p, l:tr.p, c:tr.p, v:0 });
+        d.liveAt = Date.now(); touch(tr.s);
+      });
+      S.lastUpdate = new Date();
+      scheduleRender();
+    }
+  };
+  ws.onerror = () => {};
+  ws.onclose = () => { wsLive = false; ws = null; wsFails++; renderStatus(); };
+}
+function wsSync(){
+  if (!ws || ws.readyState !== 1) return;
+  const want = new Set(wsWanted());
+  want.forEach(s => { if (!wsSubs.has(s)){ ws.send(JSON.stringify({ type:"subscribe", symbol:s })); wsSubs.add(s); } });
+  Array.from(wsSubs).forEach(s => { if (!want.has(s)){ ws.send(JSON.stringify({ type:"unsubscribe", symbol:s })); wsSubs.delete(s); } });
+}
+function wsClose(){ if (ws){ try{ ws.close(); }catch(e){} ws = null; } wsLive = false; }
+
+/* ================= Universe & caches ================= */
+function universe(){ return uniq(FUNDS.concat(S.watch, S.selected ? [S.selected] : [], S.lookups, S.scan)); }
+function scanList(){ return uniq(S.scan.concat(S.watch)).filter(s => !isFund(s)); }
+function loadCached(s){
+  const d = D(s);
+  if (!d.bars){ const h = KV.get("h." + s, null); if (h && h.b && h.b.length){ d.bars = h.b.map(unpack); d.hday = h.d; d.tdDone = !!h.td; } }
+  if (!d.prof) d.prof = KV.get("p." + s, undefined);
+  if (!d.earn) d.earn = KV.get("e." + s, undefined);
+  if (!d.met) d.met = KV.get("m." + s, undefined);
+  if (!d.news) d.news = KV.get("n." + s, undefined);
+  if (!d.ai){ const a = KV.get("a." + s, null); if (a && a.d === today()) d.ai = a; }
+  if (!d.scanAI){ const sc = KV.get("scanai", null); if (sc && sc.results && sc.results[s]) d.scanAI = sc.results[s]; }
+  const bad = KV.get("bad." + s, null);
+  if (bad && daysBetween(bad.d, today()) < 7 && !d.bars) d.tdErr = bad.m;
+  d.dirty = true;
+}
+function migrateOldCache(){
+  LS.keys().forEach(k => {
+    const m = k.match(/^sd2\.(h|n|a|e|m|p)\.(.+)$/); if (!m) return;
+    const v = LS.get(k, null);
+    if (v && KV.ok && !KV.get(m[1] + "." + m[2], null)) KV.set(m[1] + "." + m[2], m[1] === "h" ? { d:v.d, td:true, b:v.b } : v);
+    LS.del(k);
+  });
+}
+function pruneStorage(){
+  const u = new Set(universe()), t = today();
+  KV.keys().forEach(k => {
+    const m = k.match(/^(h|n|a|e|m)\.(.+)$/); if (!m) return;
+    if (!u.has(m[2])){ KV.del(k); return; }
+    if (m[1] === "a"){ const v = KV.get(k, null); if (!v || v.d !== t) KV.del(k); }
+  });
+}
+function sectorOf(s){
+  if (SECTORS[s] || FUNDS.includes(s)) return null;
+  if (SECTOR_HINT[s]) return SECTOR_HINT[s];
+  const p = D(s).prof;
+  if (p && p.ind){ for (const [re, x] of INDUSTRY_MAP) if (re.test(p.ind)) return x; }
+  return null;
+}
+function nameOf(s){
+  if (SECTORS[s]) return SECTORS[s] + " sector fund";
+  if (s === "SPY") return "S&P 500 fund"; if (s === "QQQ") return "Nasdaq 100 fund";
+  const p = D(s).prof; return p && p.name ? p.name : "";
+}
+
+/* ================= Indicators ================= */
+function sma(src, n){
+  const out = new Array(src.length).fill(null); let sum = 0;
+  for (let i=0;i<src.length;i++){ sum += src[i]; if (i >= n) sum -= src[i-n]; if (i >= n-1) out[i] = sum / n; }
+  return out;
+}
+function ema(src, n){
+  const out = new Array(src.length).fill(null);
+  const start = src.findIndex(v => v != null);
+  if (start < 0 || src.length - start < n) return out;
+  let s = 0; for (let i=start;i<start+n;i++) s += src[i];
+  let prev = s / n; out[start+n-1] = prev; const k = 2/(n+1);
+  for (let i=start+n;i<src.length;i++){ prev = src[i]*k + prev*(1-k); out[i] = prev; }
+  return out;
+}
+function rsi(c, n=14){
+  const out = new Array(c.length).fill(null); if (c.length <= n) return out;
+  let g=0, l=0;
+  for (let i=1;i<=n;i++){ const d = c[i]-c[i-1]; if (d>0) g+=d; else l-=d; }
+  g/=n; l/=n; out[n] = l === 0 ? 100 : 100 - 100/(1+g/l);
+  for (let i=n+1;i<c.length;i++){ const d = c[i]-c[i-1]; g = (g*(n-1)+Math.max(d,0))/n; l = (l*(n-1)+Math.max(-d,0))/n; out[i] = l === 0 ? 100 : 100 - 100/(1+g/l); }
+  return out;
+}
+function macd(c){
+  const e12 = ema(c,12), e26 = ema(c,26);
+  const line = c.map((_,i) => e12[i] != null && e26[i] != null ? e12[i]-e26[i] : null);
+  const sig = ema(line, 9);
+  return { line, sig, hist: line.map((v,i) => v != null && sig[i] != null ? v - sig[i] : null) };
+}
+function atr(b, n=14){
+  const out = new Array(b.length).fill(null); if (b.length <= n) return out;
+  const tr = b.map((x,i) => i === 0 ? x.h - x.l : Math.max(x.h - x.l, Math.abs(x.h - b[i-1].c), Math.abs(x.l - b[i-1].c)));
+  let a = 0; for (let i=1;i<=n;i++) a += tr[i]; a /= n; out[n] = a;
+  for (let i=n+1;i<b.length;i++){ a = (a*(n-1) + tr[i])/n; out[i] = a; }
+  return out;
+}
+function pivots(bars, from, k=3){
+  const highs = [], lows = [];
+  for (let i = Math.max(from, k); i < bars.length - k; i++){
+    let isH = true, isL = true;
+    for (let j=1;j<=k;j++){
+      if (bars[i].h <= bars[i-j].h || bars[i].h < bars[i+j].h) isH = false;
+      if (bars[i].l >= bars[i-j].l || bars[i].l > bars[i+j].l) isL = false;
+    }
+    if (isH) highs.push({ i, p:bars[i].h });
+    if (isL) lows.push({ i, p:bars[i].l });
+  }
+  return { highs, lows };
+}
+const retN = (c, n) => c.length > n ? c[c.length-1] / c[c.length-1-n] - 1 : null;
+
+/* ================= Market backdrop ================= */
+function computeMarket(){
+  const spy = D("SPY").bars, qqq = D("QQQ").bars;
+  if (!spy || spy.length < 60) return null;
+  const c = spy.map(b => b.c), L = c.length - 1;
+  const s50 = sma(c,50), s200 = c.length >= 200 ? sma(c,200) : null;
+  let qAbove = null;
+  if (qqq && qqq.length >= 60){ const qc = qqq.map(b => b.c); qAbove = qc[qc.length-1] > sma(qc,50)[qc.length-1]; }
+  const m = { spyAbove50: c[L] > s50[L], spyAbove200: s200 ? c[L] > s200[L] : null, qqqAbove50: qAbove, ret5: retN(c,5), ret21: retN(c,21) };
+  m.selloff = (m.ret5 <= -0.03 && !m.spyAbove50) || m.ret5 <= -0.05;
+  return m;
+}
+
+/* ================= Scoring ================= */
+function analyze(sym){
+  const d = D(sym), bars = d.bars;
+  if (!bars || bars.length < SCORE_MIN_BARS){ d.a = bars && bars.length ? { tooShort:true, n:bars.length } : null; return; }
+  const M = S.market, fund = isFund(sym);
+  const c = bars.map(b => b.c), L = c.length - 1, price = c[L];
+  const s20 = sma(c,20), s50 = sma(c,50), s200 = c.length >= 200 ? sma(c,200) : null;
+  const R = rsi(c), Mc = macd(c), A = atr(bars);
+  const atrv = A[L] || price * 0.02;
+  const F = [];
+  const add = (name, max, pts, note) => F.push({ name, max, pts: Math.max(0, Math.min(max, Math.round(pts))), note });
+
+  /* 1. Trend and market structure (20) */
+  let t = 0;
+  const ab20 = price > s20[L], ab50 = price > s50[L];
+  if (ab20) t += 4; if (ab50) t += 4; if (s20[L] > s50[L]) t += 3;
+  const s50up = s50[L-10] != null && s50[L] > s50[L-10]; if (s50up) t += 3;
+  const pvNear = pivots(bars, L - 80), ph = pvNear.highs.slice(-2), pl = pvNear.lows.slice(-2);
+  const hh = ph.length === 2 && ph[1].p > ph[0].p, hl = pl.length === 2 && pl[1].p > pl[0].p;
+  const lh = ph.length === 2 && ph[1].p < ph[0].p, ll = pl.length === 2 && pl[1].p < pl[0].p;
+  if (hh) t += 3; if (hl) t += 3;
+  const avgTxt = ab20 && ab50 ? "above its 20- and 50-day averages" : ab50 ? "above its 50-day average but below the 20-day" : ab20 ? "above the 20-day but below the 50-day average" : "below its 20- and 50-day averages";
+  const strTxt = hh && hl ? "making higher highs and higher lows" : lh && ll ? "making lower highs and lower lows" : hl ? "making higher lows" : hh ? "making higher highs" : "without a clear swing pattern";
+  add("Trend and market structure", 20, t, `Price is ${avgTxt}, ${strTxt}.${s50up ? "" : " The 50-day average is flat or falling."}`);
+
+  /* 2. Catalyst (12) */
+  let ce, en, earnSoon = null;
+  const td0 = today();
+  if (fund){ ce = 4; en = "Funds don't report earnings."; }
+  else if (d.earn && d.earn.next){
+    const days = daysBetween(td0, d.earn.next.date);
+    const when = `${fmtDate(d.earn.next.date)}${d.earn.next.hour === "bmo" ? " before the open" : d.earn.next.hour === "amc" ? " after the close" : ""}`;
+    if (days <= 14){ ce = 2; earnSoon = d.earn.next.date; en = `Earnings ${days <= 0 ? "today" : "in " + days + " day" + (days === 1 ? "" : "s")} (${when}). A report inside your holding window can overwhelm the chart.`; }
+    else if (days <= 45){ ce = 6; en = `Earnings on ${when}, after a typical 1 to 2 week hold.`; }
+    else { ce = 5; en = `No earnings until ${fmtDate(d.earn.next.date)}.`; }
+  } else if (d.earn){ ce = 5; en = "No earnings date in the next two months."; }
+  else { ce = 3; en = "Earnings date still loading."; }
+  let cn, nn;
+  if (fund){ cn = 2; nn = ""; }
+  else if (d.news){
+    const { n7, n21 } = d.news, rate7 = n7 / 7, rate0 = n21 / 14;
+    if (n7 >= 3 && rate7 >= 1.5 * Math.max(rate0, 0.1)){ cn = 6; nn = `News flow picked up: ${n7} stories this week, well above normal.`; }
+    else if (n7 >= 2){ cn = 3; nn = `Normal news flow (${n7} stories this week).`; }
+    else if (n7 === 1){ cn = 2; nn = "One story this week."; }
+    else { cn = 1; nn = "Quiet: no news this week."; }
+  } else { cn = 2; nn = "News still loading."; }
+  add("Catalyst", 12, ce + cn, (en + " " + nn).trim());
+
+  /* 3. Volume and accumulation (12) */
+  let upV = 0, dnV = 0;
+  for (let i = L-19; i <= L; i++){ if (i < 1) continue; const v = bars[i].v || 0; if (c[i] > c[i-1]) upV += v; else if (c[i] < c[i-1]) dnV += v; }
+  const acc = dnV ? upV / dnV : (upV ? 2 : 1);
+  let vp = acc >= 1.3 ? 5 : acc >= 1.0 ? 3 : 0;
+  let vi = L; if (!bars[L].v && L > 0) vi = L - 1;
+  const prevV = bars.slice(Math.max(0, vi-20), vi).map(b => b.v).filter(v => v > 0);
+  const avgVol = prevV.length ? prevV.reduce((a,b) => a+b, 0) / prevV.length : null;
+  const projected = vi === L && bars[L].t === td0 && marketOpen();
+  const volNow = bars[vi].v ? (projected ? bars[vi].v / sessionFraction() : bars[vi].v) : null;
+  const vr = avgVol && volNow ? volNow / avgVol : null;
+  const upDay = vi > 0 && c[vi] > c[vi-1];
+  if (vr != null){ vp += upDay ? (vr >= 4 ? 7 : vr >= 2 ? 5 : vr >= 1.3 ? 3 : 1) : (vr >= 1.5 ? 0 : 1); }
+  add("Volume and accumulation", 12, vp,
+    `Up-day volume is ${fmtN(acc,1)}× down-day volume over 20 days (${acc >= 1.3 ? "buyers in control" : acc >= 1 ? "fairly balanced" : "sellers in control"}).` +
+    (vr != null ? ` The latest ${upDay ? "up" : "down"} day traded ${fmtN(vr,1)}× normal volume${projected ? ", projected for the full day" : ""}.` : ""));
+
+  /* 4. Support and resistance (11) */
+  const pvWide = pivots(bars, L - 120);
+  const supC = pvWide.lows.filter(x => x.p < price).slice(-6).map(x => x.p).concat([s20[L], s50[L]].filter(v => v != null && v < price));
+  const support = supC.length ? Math.max(...supC) : price - 2*atrv;
+  const hi52 = Math.max(...bars.slice(-252).map(b => b.h));
+  const resC = uniq(pvWide.highs.filter(x => x.p > price*1.005).map(x => +x.p.toFixed(2)).concat(hi52 > price*1.005 ? [+hi52.toFixed(2)] : [])).sort((a,b) => a-b);
+  const resistance = resC.length ? resC[0] : null;
+  const breakout = [0,1,2].some(k => { const i = L-k; if (i < 21) return false; return c[i] > Math.max(...bars.slice(i-20, i).map(b => b.h)); });
+  const distATR = (price - support) / atrv;
+  let sp = distATR <= 1 ? 11 : distATR <= 2 ? 7 : distATR <= 3 ? 4 : 1;
+  if (breakout && vr != null && vr >= 1.5) sp = Math.max(sp, 9);
+  add("Support and resistance", 11, sp,
+    `Nearest support is ${fmt$(support)}, about ${fmtN(distATR,1)}× its average daily range below. ` +
+    (resistance ? `Resistance is at ${fmt$(resistance)}.` : "No overhead resistance; it's trading near its highs.") +
+    (breakout ? " It recently broke above its 20-day high" + (vr != null && vr >= 1.5 ? " on strong volume." : ".") : ""));
+
+  /* 5. Relative strength (10) */
+  const r20 = retN(c, 20), r63 = retN(c, 63);
+  const spyB = D("SPY").bars, spy20 = spyB && spyB.length > 21 ? retN(spyB.map(b => b.c), 20) : null;
+  const sec = sectorOf(sym), secB = sec && D(sec).bars, sec20 = secB && secB.length > 21 ? retN(secB.map(b => b.c), 20) : null;
+  const rsSpy = spy20 != null ? (r20 - spy20) * 100 : null, rsSec = sec20 != null ? (r20 - sec20) * 100 : null;
+  let rp = rsSpy == null ? 3 : rsSpy >= 5 ? 6 : rsSpy >= 2 ? 4 : rsSpy >= 0 ? 2 : 0;
+  rp += rsSec == null ? 2 : rsSec >= 3 ? 4 : rsSec >= 0 ? 2 : 0;
+  add("Relative strength", 10, rp,
+    `${r20 >= 0 ? "Up" : "Down"} ${fmtN(Math.abs(r20*100),1)}% over the past month` +
+    (spy20 != null ? `, versus ${fmtPct(spy20*100,1)} for SPY` : "") +
+    (sec20 != null ? ` and ${fmtPct(sec20*100,1)} for its sector (${SECTORS[sec]}).` : "."));
+
+  /* 6. Momentum, in context (9) */
+  const r = R[L]; let mp = 0, mn;
+  if (ab50){
+    if (r >= 45 && r <= 65){ mp += 4; mn = `RSI ${fmtN(r,0)} is healthy for an uptrend: strong but not stretched.`; }
+    else if (r > 65 && r <= 75){ mp += 2; mn = `RSI ${fmtN(r,0)} is getting warm.`; }
+    else if (r > 75){ mn = `RSI ${fmtN(r,0)} is stretched; buying now means chasing.`; }
+    else { mp += 3; mn = `RSI ${fmtN(r,0)} shows a pullback inside the uptrend.`; }
+  } else {
+    if (r < 30){ mn = `RSI ${fmtN(r,0)} is oversold, but in a downtrend that often means more selling, not a bounce.`; }
+    else { mp += 1; mn = `RSI ${fmtN(r,0)} with price below its 50-day average.`; }
+  }
+  const macdUp = Mc.line[L] != null && Mc.sig[L] != null && Mc.line[L] > Mc.sig[L];
+  const histUp = Mc.hist[L] != null && Mc.hist[L-1] != null && Mc.hist[L] > Mc.hist[L-1];
+  if (macdUp) mp += 3; if (histUp) mp += 2;
+  add("Momentum", 9, mp, `${mn} MACD is ${macdUp ? "above" : "below"} its signal line and momentum is ${histUp ? "improving" : "fading"}.`);
+
+  /* 7. Reward to risk (9) */
+  let stop = support - 0.25*atrv;
+  stop = Math.min(stop, price - 0.5*atrv);
+  stop = Math.max(stop, price - 3*atrv);
+  const beyond = resC.filter(x => x > price + atrv);
+  const nearRes = resC.length && resC[0] <= price + atrv ? resC[0] : null;
+  const target = beyond.length ? beyond[0] : price + 3*atrv;
+  const target2 = beyond.length > 1 ? beyond[1] : target + 1.5*atrv;
+  const risk = price - stop, rr = (target - price) / risk;
+  const idealEntry = (target + 2*stop) / 3;
+  const rrp = rr >= 3 ? 9 : rr >= 2 ? 6 : rr >= 1.5 ? 3 : 0;
+  add("Reward to risk", 9, rrp,
+    `Buying at ${fmt$(price)} with a stop near ${fmt$(stop)} (just under support) and a first target of ${fmt$(target)} gives about ${fmtN(rr,1)}:1.` +
+    (nearRes ? ` Resistance at ${fmt$(nearRes)} sits just overhead.` : ""));
+
+  /* 8. Sector trend (7) */
+  let secp = 3, secn = "Sector not identified, so this counts as neutral.";
+  if (SECTORS[sym]){ secn = "This is a sector fund itself."; }
+  else if (sym === "SPY" || sym === "QQQ"){ secn = "This is a broad market fund."; }
+  else if (secB && secB.length >= 60){
+    const sc = secB.map(b => b.c), sl = sc.length - 1, ss20 = sma(sc,20), ss50 = sma(sc,50);
+    const above = sc[sl] > ss50[sl], beat = spyB && spyB.length > 22 ? retN(sc,21) > retN(spyB.map(b => b.c),21) : null;
+    secp = (above ? 3 : 0) + (beat ? 2 : 0) + (ss20[sl] > ss50[sl] ? 2 : 0);
+    secn = `${SECTORS[sec]} (${sec}) is ${above ? "above" : "below"} its 50-day average${beat == null ? "" : " and " + (beat ? "outperforming" : "lagging") + " the market over the past month"}.`;
+  }
+  add("Sector trend", 7, secp, secn);
+
+  /* 9. Fundamentals (5) */
+  let fp = 2, fn = "Fundamentals still loading.";
+  if (fund){ fn = "Funds don't have company fundamentals."; }
+  else if (d.met){
+    const m = d.met.m; const parts = []; let pts = 0, any = false;
+    if (m.rg != null){ any = true; pts += m.rg > 10 ? 2 : m.rg > 0 ? 1 : 0; parts.push(`revenue ${m.rg >= 0 ? "up" : "down"} ${fmtN(Math.abs(m.rg),0)}%`); }
+    if (m.eg != null){ any = true; pts += m.eg > 0 ? 1 : 0; parts.push(`earnings per share ${m.eg >= 0 ? "up" : "down"} ${fmtN(Math.abs(m.eg),0)}%`); }
+    if (m.nm != null){ any = true; pts += m.nm > 0 ? 1 : 0; parts.push(`${fmtN(m.nm,0)}% profit margin`); }
+    if (m.de != null){ any = true; pts += m.de < 1.5 ? 1 : 0; parts.push(m.de < 1.5 ? "manageable debt" : "heavy debt"); }
+    if (any){ fp = pts; fn = "Over the past year: " + parts.join(", ") + "."; } else fn = "No fundamentals available on the free plan for this stock.";
+  }
+  add("Fundamentals", 5, fp, fn);
+
+  /* 10. Overall market (5) */
+  let mkp = 3, mkn = "Market data still loading.";
+  if (M){
+    mkp = (M.spyAbove50 ? 2 : 0) + (M.qqqAbove50 ? 1 : 0) + (M.spyAbove200 ? 1 : 0) + (M.ret5 > -0.03 ? 1 : 0);
+    mkn = `SPY is ${M.spyAbove50 ? "above" : "below"} its 50-day average${M.qqqAbove50 == null ? "" : ", QQQ is " + (M.qqqAbove50 ? "above" : "below") + " its own"}, and SPY is ${fmtPct(M.ret5*100,1)} this week.` + (M.selloff ? " That counts as a selloff." : "");
+  }
+  add("Overall market", 5, mkp, mkn);
+
+  /* Score, deal-breakers and verdict */
+  const score = Math.max(1, Math.min(100, F.reduce((a,f) => a + f.pts, 0)));
+  const strongDown = s200 ? (price < s50[L] && s50[L] < s200[L]) : (price < s50[L] && s20[L] < s50[L] && lh && ll);
+  const waits = [];
+  if (earnSoon) waits.push(`earnings on ${fmtDate(earnSoon)} are out of the way`);
+  if (rr < 2) waits.push(idealEntry < price * 0.995 ? `a pullback toward ${fmt$(idealEntry)}, where reward to risk would be about 2:1` : `a better entry, since reward to risk is only ${fmtN(rr,1)}:1 here`);
+  if (r > 75) waits.push("RSI cools off from overbought");
+  if (M && M.selloff) waits.push("the market selloff eases");
+  let verdict, headline;
+  if (score < 45 || strongDown){
+    verdict = "not";
+    headline = strongDown ? "The trend is down: price is below falling averages. Better setups are elsewhere." : "Too few factors line up right now.";
+  } else if (score >= 70 && !waits.length){
+    verdict = "buy";
+    headline = `Strong chart and a real setup, with about ${fmtN(rr,1)}:1 reward to risk at today's price.`;
+  } else {
+    verdict = "wait";
+    if (!waits.length) waits.push(`more factors line up (the score is ${score}; a good buy needs 70 or more)`);
+    headline = score >= 70 ? "A strong stock, but not at a good moment to buy." : "Some things are working, but not enough yet.";
+  }
+
+  d.a = { price, score, verdict, headline, waits, F, support, resistance, stop, target, target2, rr, idealEntry, atr:atrv,
+    rsi:r, s20:s20, s50:s50, s200:s200, vr, avgVol, r20, r63, rsSpy, rsSec, sec, earnSoon, hi52, breakout, strongDown };
+}
+
+/* ================= AI ================= */
+const MODEL_NAMES = { "claude-haiku-4-5-20251001":"Claude Haiku 4.5", "claude-sonnet-5":"Claude Sonnet 5" };
+const SCAN_MODEL = "claude-haiku-4-5-20251001";
+const RATES = { "claude-haiku-4-5-20251001":[1, 5] };   // dollars per million input / output tokens
+const FRAMEWORK = `You are a swing-trading analyst helping one person evaluate US stocks for trades held about 1 to 4 weeks. Judge each stock with this framework, listed from most to least important:
+1. Price trend and market structure: prefer higher highs, higher lows, price above the 20- and 50-day averages, shallow pullbacks, buyers defending support. Favor stocks already showing strength over trying to call a bottom.
+2. Catalyst: earnings, product launches, FDA decisions, contracts, conferences, analyst events, industry news. A catalyst with a good chart is interesting; a catalyst with a bad chart is dangerous. Earnings inside the holding window can overwhelm a technical setup.
+3. Volume and accumulation: moves on 2x or 4x normal volume carry more weight, especially breakouts through resistance.
+4. Support and resistance: know where the trade is wrong. Entries near support beat entries just under resistance.
+5. Relative strength versus the S&P 500 and the stock's sector.
+6. Momentum (RSI, MACD), always read in the context of the trend. RSI 30 is not automatically a buy.
+7. Reward to risk at today's price. Prefer 2:1 or better. This is where the final decision is made.
+8. Sector and industry trend.
+9. Fundamentals: is the story improving or deteriorating? Cheapness is not required.
+10. Overall market (SPY, QQQ). Be more selective in a selloff.
+Final test: if the person had no position, would they want to buy at this exact price?
+
+The site has already computed a rules-based score out of 100. Your added value is reading the news headlines and earnings information for catalysts and risks that rules cannot judge, and sanity-checking the score. Use only the facts provided. Do not invent news, numbers, dates or events. If the news is thin or unclear, say so. Write for a beginner: plain words, and explain any jargon briefly.`;
+const AI_SYSTEM = FRAMEWORK + `
+
+Respond with ONLY a JSON object, with no markdown and no text before or after it, using exactly these keys:
+{"verdict": "good_buy" | "wait" | "not_good",
+ "headline": "one plain-English sentence under 25 words",
+ "reasons": ["2 to 4 short reasons"],
+ "catalysts": ["0 to 3 specific catalysts from the news or earnings date"],
+ "risks": ["1 to 3 short risks"],
+ "wait_for": "if verdict is wait, the specific thing to wait for, with a price level when possible; otherwise an empty string",
+ "news_read": "positive" | "mixed" | "negative" | "quiet"}`;
+const SCAN_SYSTEM = FRAMEWORK + `
+
+You will receive facts for several stocks at once. Judge each one on its own facts. Respond with ONLY a JSON array, with no markdown and no text before or after it, containing one object per stock with exactly these keys:
+{"ticker": "the ticker",
+ "verdict": "good_buy" | "wait" | "not_good",
+ "reason": "one line under 15 words",
+ "summary": "3 to 4 plain-English sentences on whether this is a good buy right now. Combine what the news says with the chart, score, earnings timing and fundamentals. When useful, name a specific price to watch."}`;
+
+function costOf(model, u){
+  const r = RATES[model]; if (!r || !u) return 0;
+  const inp = (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) * 1.25 + (u.cache_read_input_tokens || 0) * 0.1;
+  return inp * r[0] / 1e6 + (u.output_tokens || 0) * r[1] / 1e6;
+}
+function aiSpendToday(){ const t = today(), v = LS.get("sd2.aispend", { d:t, usd:0 }); return v.d === t ? v.usd : 0; }
+function addSpend(usd){ LS.set("sd2.aispend", { d:today(), usd:aiSpendToday() + usd }); }
+function capLeft(){ const cap = +S.settings.aiCap || 0; return cap > 0 ? cap - aiSpendToday() : Infinity; }
+
+async function callClaude(model, system, content, maxTokens){
+  let res;
+  try{
+    res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{ "content-type":"application/json", "x-api-key":S.ai, "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
+      body: JSON.stringify({ model, max_tokens:maxTokens, system, messages:[{ role:"user", content }] })
+    });
+  }catch(e){ const err = new Error("Couldn't reach the Claude API. Check your internet connection."); err.retry = true; err.wait = 10000; throw err; }
+  let j = null; try{ j = await res.json(); }catch(e){}
+  if (!res.ok){
+    const msg = (j && j.error && j.error.message) || "";
+    const fail = (m, extra) => Object.assign(new Error(m), extra || {});
+    if (res.status === 401) throw fail("The Claude API rejected your key. Open Settings and paste it again.", { fatal:true });
+    if (/credit balance/i.test(msg)) throw fail("Your Claude API account is out of credit. Add credit at console.anthropic.com under Billing.", { fatal:true });
+    if (res.status === 429){ const ra = +(res.headers.get("retry-after") || 0); throw fail("The Claude API asked us to slow down.", { retry:true, wait:(ra > 0 ? ra * 1000 : 20000) }); }
+    if (res.status === 529 || res.status >= 500) throw fail("The Claude API is busy right now.", { retry:true, wait:15000 });
+    throw fail(msg || `The Claude API returned an error (${res.status}).`);
+  }
+  const text = ((j && j.content) || []).filter(b => b.type === "text").map(b => b.text).join("\n");
+  const c = costOf(model, j && j.usage); addSpend(c);
+  return { text, cost:c };
+}
+function r2(v){ return v == null || !isFinite(v) ? null : Math.round(v * 100) / 100; }
+function marketFacts(){
+  const M = S.market;
+  return M ? { spy_above_50_day:M.spyAbove50, spy_above_200_day:M.spyAbove200, qqq_above_50_day:M.qqqAbove50, spy_5_day_pct:r2(M.ret5*100), selloff:M.selloff } : null;
+}
+
+/* ---- Deep, single-stock analysis ---- */
+function aiFacts(s){
+  const d = D(s), a = d.a, L = d.bars.length - 1, ch = changeOf(s);
+  return {
+    ticker:s, name:nameOf(s), sector:a.sec ? SECTORS[a.sec] : null, date:today(), market_open_now:marketOpen(),
+    price:r2(a.price), change_today_pct:r2(ch.pct),
+    site_score_out_of_100:a.score, site_verdict:{ buy:"good_buy", wait:"wait", not:"not_good" }[a.verdict], site_wait_for:a.waits,
+    factor_breakdown:a.F.map(f => ({ factor:f.name, points:f.pts, max:f.max, note:f.note })),
+    levels:{ support:r2(a.support), resistance:r2(a.resistance), suggested_stop:r2(a.stop), first_target:r2(a.target), second_target:r2(a.target2), reward_to_risk:r2(a.rr), high_52_week:r2(a.hi52) },
+    indicators:{ rsi_14:r2(a.rsi), sma_20:r2(a.s20[L]), sma_50:r2(a.s50[L]), sma_200:a.s200 ? r2(a.s200[L]) : null, avg_daily_range_atr:r2(a.atr), volume_vs_normal:r2(a.vr), return_1_month_pct:r2(a.r20*100), return_3_month_pct:a.r63 == null ? null : r2(a.r63*100), vs_spy_1_month_pct_points:r2(a.rsSpy), vs_sector_1_month_pct_points:r2(a.rsSec) },
+    market:marketFacts(),
+    next_earnings:d.earn && d.earn.next ? { date:d.earn.next.date, timing:d.earn.next.hour || "unknown", eps_estimate:d.earn.next.est } : null,
+    recent_earnings:d.earn && d.earn.past ? d.earn.past.map(p => ({ date:p.date, eps_actual:p.act, eps_estimate:p.est })) : [],
+    fundamentals:d.met ? { revenue_growth_1y_pct:r2(d.met.m.rg), eps_growth_1y_pct:r2(d.met.m.eg), net_margin_pct:r2(d.met.m.nm), debt_to_equity:r2(d.met.m.de), pe_ratio:r2(d.met.m.pe) } : null,
+    news_last_3_weeks:d.news ? { stories_this_week:d.news.n7, stories_prior_two_weeks:d.news.n21, latest:d.news.items.map(n => ({ date:new Date(n.t*1000).toISOString().slice(0,10), source:n.src, headline:n.h, summary:n.s })) } : "not loaded"
+  };
+}
+async function runAI(s){
+  const d = D(s);
+  if (!S.ai || !d.a || d.a.tooShort || d.aiBusy) return;
+  if (capLeft() <= 0.01){ d.aiErr = `You've reached today's AI spending limit of ${fmt$(+S.settings.aiCap)}. You can raise it in Settings.`; renderDetail(); return; }
+  d.aiBusy = true; d.aiErr = null; renderDetail();
+  try{
+    if (!isFund(s) && S.fh){
+      try{ if (!d.news || d.news.d !== today()) await loadNews(s); }catch(e){}
+      try{ if (!d.earn || d.earn.src !== "sym" || d.earn.d !== today()) await loadEarn(s); }catch(e){}
+      analyze(s);
+    }
+    let out, attempt = 0;
+    for(;;){
+      try{ out = await callClaude(S.settings.aiModel, AI_SYSTEM, "Evaluate this stock for a swing trade. Facts:\n" + JSON.stringify(aiFacts(s)), 1200); break; }
+      catch(e){ if (e.retry && attempt < 2){ attempt++; await sleep(e.wait || 15000); continue; } throw e; }
+    }
+    const t = out.text, i0 = t.indexOf("{"), i1 = t.lastIndexOf("}");
+    if (i0 < 0 || i1 < i0) throw new Error("The AI's answer couldn't be read. Try again.");
+    d.ai = { d:today(), at:Date.now(), model:S.settings.aiModel, r:JSON.parse(t.slice(i0, i1 + 1)) };
+    KV.set("a." + s, d.ai);
+  }catch(e){ d.aiErr = e.message || "Something went wrong with the AI analysis."; }
+  finally{ d.aiBusy = false; renderDetail(); }
+}
+
+/* ---- AI scan of the whole list, 10 stocks per request ---- */
+const SCAN = { running:false, stop:false, total:0, done:0, failed:0, cost:0, queue:[], waiting:new Set(), error:null, capHit:false };
+function scanTargets(){ return scanList().filter(s => S.data[s] && S.data[s].a && !S.data[s].a.tooShort); }
+function compactFacts(s){
+  const d = D(s), a = d.a, ch = changeOf(s);
+  const o = {
+    ticker:s, name:nameOf(s), sector:a.sec ? SECTORS[a.sec] : null, price:r2(a.price), change_pct:r2(ch.pct),
+    score:a.score, site_verdict:{ buy:"good_buy", wait:"wait", not:"not_good" }[a.verdict],
+    factors:a.F.map(f => `${f.name} ${f.pts}/${f.max}`).join("; "),
+    trend:a.F[0].note, volume:a.F[2].note,
+    levels:{ support:r2(a.support), resistance:r2(a.resistance), stop:r2(a.stop), target:r2(a.target), reward_to_risk:r2(a.rr) },
+    rsi:r2(a.rsi), return_1m_pct:r2(a.r20*100), vs_spy_1m_pts:r2(a.rsSpy),
+    next_earnings:d.earn && d.earn.next ? d.earn.next.date : (d.earn ? "none in next 2 months" : "unknown")
+  };
+  if (a.verdict === "wait") o.site_wait_for = a.waits;
+  if (d.met) o.fundamentals = { revenue_growth_pct:r2(d.met.m.rg), eps_growth_pct:r2(d.met.m.eg), net_margin_pct:r2(d.met.m.nm) };
+  if (d.news){ o.stories_this_week = d.news.n7; o.headlines = d.news.items.slice(0, 5).map(n => new Date(n.t*1000).toISOString().slice(5,10) + " " + n.h); }
+  else o.headlines = "not available";
+  return o;
+}
+function normVerdict(v){ v = String(v || "").toLowerCase(); return v.indexOf("good") === 0 ? "good_buy" : v.indexOf("not") === 0 ? "not_good" : "wait"; }
+async function scanBatch(batch){
+  const content = "Evaluate each of these stocks for a swing trade. Market backdrop: " + JSON.stringify({ date:today(), market:marketFacts() }) + "\nStocks:\n" + JSON.stringify(batch.map(compactFacts));
+  let attempt = 0;
+  for(;;){
+    try{
+      const out = await callClaude(SCAN_MODEL, SCAN_SYSTEM, content, 4000);
+      SCAN.cost += out.cost;
+      const t = out.text.replace(/```json|```/g, ""), i0 = t.indexOf("["), i1 = t.lastIndexOf("]");
+      let arr = [];
+      try{ arr = JSON.parse(t.slice(i0, i1 + 1)); }catch(e){ arr = []; }
+      const store = KV.get("scanai", { results:{} }), at = Date.now(), got = new Set();
+      (Array.isArray(arr) ? arr : []).forEach(r => {
+        const s = String(r && r.ticker || "").toUpperCase();
+        if (!batch.includes(s) || got.has(s)) return;
+        got.add(s);
+        store.results[s] = { v:normVerdict(r.verdict), r:String(r.reason || "").slice(0, 200), s:String(r.summary || "").slice(0, 900), at };
+        D(s).scanAI = store.results[s];
+      });
+      KV.set("scanai", store);
+      SCAN.done += got.size;
+      batch.forEach(s => { if (!got.has(s)){ SCAN.failed++; SCAN.retry.push(s); } });
+      return;
+    }catch(e){
+      if (e.retry && attempt < 4){ attempt++; await sleep(e.wait || 20000); continue; }
+      if (e.fatal){ SCAN.stop = true; SCAN.error = e.message; }
+      SCAN.failed += batch.length;
+      return;
+    }
+  }
+}
+function promoteScan(){
+  const t = today();
+  SCAN.waiting.forEach(s => {
+    const d = D(s), key = "n:" + s;
+    const loaded = d.news && d.news.d === t;
+    const stuck = !fhQueue.some(x => x.key === key) && !fhInflight.has(key);
+    if (loaded || stuck || fhStopped){ SCAN.waiting.delete(s); SCAN.queue.push(s); }
+  });
+}
+async function scanWorker(){
+  while (!SCAN.stop){
+    promoteScan();
+    if (SCAN.queue.length >= 10 || (SCAN.queue.length && !SCAN.waiting.size)){
+      const batch = SCAN.queue.splice(0, 10);
+      if (capLeft() < 0.03 * batch.length){ SCAN.stop = true; SCAN.capHit = true; break; }
+      await scanBatch(batch);
+      renderScanBar(); scheduleRender();
+    } else if (!SCAN.queue.length && !SCAN.waiting.size) break;
+    else await sleep(800);
+  }
+}
+async function runScan(){
+  if (SCAN.running){ SCAN.stop = true; renderScanBar(); return; }
+  if (!S.ai){ notice("Add your Claude API key in Settings to run the AI scan. The steps are in Help.", true); openSettings(); return; }
+  if (capLeft() < 0.3){ notice(`You've reached today's AI spending limit of ${fmt$(+S.settings.aiCap)}. You can raise it in Settings.`, true); return; }
+  const targets = scanTargets().sort((a,b) => S.data[b].a.score - S.data[a].a.score);
+  if (!targets.length){ notice("Price history is still loading, so there's nothing to scan yet. Try again in a few minutes.", true); return; }
+  clearNotice();
+  Object.assign(SCAN, { running:true, stop:false, total:targets.length, done:0, failed:0, cost:0, queue:[], waiting:new Set(), error:null, capHit:false, retry:[], started:Date.now() });
+  const t = today();
+  targets.forEach(s => {
+    const d = D(s);
+    if (d.news && d.news.d === t) SCAN.queue.push(s);
+    else { SCAN.waiting.add(s); fhTask("n:" + s, 0.5, () => loadNews(s), true); }
+  });
+  renderScanBar();
+  await Promise.all([scanWorker(), scanWorker()]);
+  if (!SCAN.stop && SCAN.retry.length){           // one more try for stocks the AI skipped
+    const again = SCAN.retry.splice(0); SCAN.failed -= again.length;
+    for (const b of chunks(again, 5)){ if (SCAN.stop || capLeft() < 0.1) break; await scanBatch(b); renderScanBar(); }
+  }
+  SCAN.running = false;
+  const meta = { at:Date.now(), done:SCAN.done, total:SCAN.total, cost:SCAN.cost, stopped:SCAN.stop };
+  KV.set("scanmeta", meta);
+  if (SCAN.error) notice("The AI scan stopped: " + SCAN.error, true);
+  else if (SCAN.capHit) notice(`The AI scan paused because it reached today's spending limit of ${fmt$(+S.settings.aiCap)}. ${SCAN.done} stocks were analyzed. You can raise the limit in Settings.`, true);
+  else if (SCAN.failed) notice(`AI scan finished. ${SCAN.done} of ${SCAN.total} stocks were analyzed; ${SCAN.failed} couldn't be read this time.`);
+  renderScanBar(); scheduleRender();
+}
+
+/* ================= Derived views ================= */
+function changeOf(s){
+  const d = S.data[s]; if (!d || !d.bars || d.bars.length < 2) return {};
+  const b = d.bars, L = b.length - 1, price = b[L].c;
+  const prev = d.q && d.q.pc && d.q.t && etDateMs(d.q.t*1000) === b[L].t ? d.q.pc : b[L-1].c;
+  const ch = price - prev;
+  return { price, ch, pct:ch / prev * 100, stale: marketOpen() && b[L].t !== today() };
+}
+function scanComplete(){
+  return !S.dayRunning && !S.tdRunning && universe().every(s => !needsHist(s)) && !fhQueue.some(t => DAILY_KIND(t.key)) && !Array.from(fhInflight).some(DAILY_KIND);
+}
+function stocksPending(){ return scanList().filter(s => !(S.data[s] && (S.data[s].tdErr || (S.data[s].a && !S.data[s].a.tooShort)))).length; }
+function stocksScanned(){ return universe().filter(s => !isFund(s) && S.data[s] && S.data[s].a && !S.data[s].a.tooShort); }
+function topPicks(){
+  return stocksScanned().map(s => ({ s, a:S.data[s].a })).filter(x => x.a.verdict === "buy").sort((x,y) => y.a.score - x.a.score).slice(0, 5);
+}
+const VERDICT = { buy:"Good buy", wait:"I would wait", not:"Not a good buy" };
+const AI_VERDICT = { good_buy:"Good buy", wait:"I would wait", not_good:"Not a good buy" };
+const AI_BADGE = { good_buy:"b-buy", wait:"b-wait", not_good:"b-not" };
+const RULE_TO_AI = { buy:"good_buy", wait:"wait", not:"not_good" };
+function badgeFor(s){
+  const d = S.data[s];
+  if (!d || (!d.a && !d.tdErr)) return `<span class="badge b-pending">Loading…</span>`;
+  if (d.tdErr) return `<span class="badge b-not">No data</span>`;
+  if (d.a.tooShort) return `<span class="badge">Loading history</span>`;
+  return `<span class="badge b-${d.a.verdict}">${VERDICT[d.a.verdict]} <span style="opacity:.75">${d.a.score}</span></span>`;
+}
+
+/* ================= Rendering ================= */
+let renderTimer = null, lastRender = 0;
+function scheduleRender(){
+  if (renderTimer) return;
+  const wait = Math.max(0, 800 - (Date.now() - lastRender));
+  renderTimer = setTimeout(() => { renderTimer = null; lastRender = Date.now(); computeAll(); renderAll(); }, wait);
+}
+function computeAll(){
+  S.market = computeMarket();
+  let all = S.allDirty;
+  if (S.fundDirty && Date.now() - S.lastFull > 60000){ all = true; S.fundDirty = false; }
+  if (Date.now() - S.lastFull > 300000) all = true;           // time-based factors (earnings countdown, session volume)
+  if (all){ S.allDirty = false; S.lastFull = Date.now(); }
+  universe().forEach(s => { const d = S.data[s]; if (!d) return; if (all || d.dirty || d.a === undefined){ d.dirty = false; analyze(s); } });
+  if (S.dayStarted && !S.scanDoneAt && scanComplete()) S.scanDoneAt = new Date();
+}
+function renderAll(){
+  const hasKeys = !!(S.td && S.fh && S.mv);
+  $("onboard").hidden = hasKeys;
+  $("viewDash").hidden = !hasKeys || S.tab !== "dash";
+  $("viewRes").hidden = !hasKeys || S.tab !== "results";
+  $("viewSec").hidden = !hasKeys || S.tab !== "sectors";
+  $("tabDash").setAttribute("aria-selected", S.tab === "dash");
+  $("tabRes").setAttribute("aria-selected", S.tab === "results");
+  $("tabSec").setAttribute("aria-selected", S.tab === "sectors");
+  renderOnboard();
+  if (hasKeys){
+    if (S.tab === "dash"){ renderScanBar(); renderTop5(); renderWatch(); renderDetail(); }
+    else if (S.tab === "results") renderResults();
+    else renderSectors();
+  }
+  renderStatus();
+  if (ws) wsSync();
+}
+function renderOnboard(){
+  $("obTdDone").hidden = !S.td; $("obTdSteps").hidden = !!S.td;
+  $("obFhDone").hidden = !S.fh; $("obFhSteps").hidden = !!S.fh;
+  $("obMvDone").hidden = !S.mv; $("obMvSteps").hidden = !!S.mv;
+}
+
+function renderStatus(){
+  const open = marketOpen();
+  const m = $("mkt"); m.className = "pill" + (open ? " open" : "");
+  m.textContent = open ? "Market open" : "Market closed";
+  $("live").hidden = !wsLive;
+  const p = S.prog, hasKeys = S.td && S.fh && S.mv;
+  let txt = "", pct = 0;
+  if (S.dayRunning && p.dayTotal - p.dayDone > 2){ txt = `Price history: ${p.dayDone} of ${p.dayTotal} days`; pct = p.dayDone / p.dayTotal * 100; }
+  else if (S.dayRunning){ txt = "Updating prices"; pct = 90; }
+  else if (S.tdRunning && p.tdTotal){ txt = `Filling in stocks: ${p.tdDone} of ${p.tdTotal}`; pct = p.tdDone / p.tdTotal * 100; }
+  else if (p.fhTotal > p.fhDone){ pct = Math.round(p.fhDone / p.fhTotal * 100); txt = `Company data: ${pct}%`; }
+  $("prog").hidden = !(hasKeys && txt);
+  if (txt){ $("progText").textContent = txt; $("progBar").style.width = pct + "%"; }
+  const parts = [];
+  if (S.lastUpdate) parts.push("Prices updated " + S.lastUpdate.toLocaleTimeString([], { hour:"numeric", minute:"2-digit" }));
+  if (!open && S.td) parts.push("showing the latest close");
+  parts.push(`Twelve Data: ${credits().used} of 800 today`);
+  $("upd").textContent = parts.join(". ");
+}
+
+function renderScanBar(){
+  const btn = $("btnScan"), info = $("scanInfo"), bar = $("scanBar");
+  if (SCAN.running){
+    btn.textContent = SCAN.stop ? "Stopping…" : "Stop scan"; btn.className = "btn";
+    const n = SCAN.done + SCAN.failed;
+    info.textContent = `AI scan: ${SCAN.done} of ${SCAN.total} stocks${SCAN.waiting.size ? ` (loading news for ${SCAN.waiting.size})` : ""}, about ${fmt$(SCAN.cost)} so far`;
+    bar.hidden = false; $("scanBarFill").style.width = (SCAN.total ? n / SCAN.total * 100 : 0) + "%";
+    return;
+  }
+  btn.textContent = "Run AI scan"; btn.className = "btn primary"; bar.hidden = true;
+  const m = KV.get("scanmeta", null), ready = scanTargets().length;
+  if (!S.ai) info.textContent = "Add a Claude API key in Settings to scan every stock with AI.";
+  else if (m) info.textContent = `Last AI scan: ${new Date(m.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}, ${m.done} stocks, about ${fmt$(m.cost)}. ${ready} stocks ready to scan.`;
+  else info.textContent = `Scans all ${ready || scanList().length} stocks in about 10 to 15 minutes, for roughly ${fmt$(Math.max(0.1, (ready || scanList().length) * 0.0018))}.`;
+}
+function renderTop5(){
+  const picks = topPicks(), scanned = stocksScanned().length, pending = stocksPending();
+  const u = scanned + pending, stillGoing = pending > 0 || !scanComplete();
+  const firstTime = okDays() < SCORE_MIN_BARS && (S.dayRunning || okDays() === 0);
+  $("t5sub").textContent = stillGoing ? `Scored ${scanned} of ${u} stocks so far` : `From ${scanned} stocks scored${S.scanDoneAt ? " (updated " + S.scanDoneAt.toLocaleTimeString([], { hour:"numeric", minute:"2-digit" }) + ")" : ""}`;
+  if (firstTime && !picks.length){
+    setHTML($("t5body"), `<div class="t5-empty"><p><b>First-time setup:</b> downloading about a year of price history for all ${scanList().length} stocks, one day at a time.</p>
+      <p class="muted" style="font-size:14px">Stocks can be scored once 60 days are in (about 12 minutes). The full year takes about 45 minutes, and only happens once. Keep this page open. After today, the daily update takes a couple of minutes.</p></div>`);
+    return;
+  }
+  if (!picks.length){
+    const close = stocksScanned().map(s => ({ s, a:S.data[s].a })).filter(x => x.a.verdict === "wait").sort((x,y) => y.a.score - x.a.score).slice(0, 5);
+    setHTML($("t5body"), `<div class="t5-empty">
+      <p>${stillGoing ? "Still scoring. Picks appear here as stocks finish." : "No stocks rate as a good buy right now. That happens, and waiting is a position too."}</p>
+      ${close.length ? `<p class="muted" style="font-size:14px">Closest to a buy:</p><div class="chips">${close.map(x => `<button class="chip" type="button" data-sym="${esc(x.s)}">${esc(x.s)} ${x.a.score}</button>`).join("")}</div>` : ""}
+    </div>`);
+    return;
+  }
+  setHTML($("t5body"), `<div class="t5-grid">${picks.map((p, i) => {
+    const c = changeOf(p.s), tg = (p.a.target / p.a.price - 1) * 100, ai = S.data[p.s].scanAI;
+    return `<button class="pick" type="button" data-sym="${esc(p.s)}">
+      <span class="pk-rank">${i+1}</span><span class="pk-sym">${esc(p.s)}</span><span class="pk-score" title="Score out of 100">${p.a.score}</span>
+      <span class="pk-nm">${esc(nameOf(p.s))}</span>
+      <span class="pk-meta">${fmt$(c.price)} <span class="${c.pct >= 0 ? "up" : "down"}">${fmtPct(c.pct)}</span></span>
+      <span class="pk-tgt">Target ${fmt$(p.a.target)} (${fmtPct(tg,1)}), ${fmtN(p.a.rr,1)}:1 reward to risk</span>
+      ${ai ? `<span class="pk-ai">AI: <b class="${ai.v === "good_buy" ? "up" : ai.v === "not_good" ? "down" : ""}">${AI_VERDICT[ai.v]}</b></span>` : ""}
+    </button>`; }).join("")}</div>`);
+}
+function renderWatch(){
+  let list = S.watch.slice();
+  const sort = $("sortSel").value;
+  const sc = s => (S.data[s] && S.data[s].a && S.data[s].a.score) || -1;
+  if (sort === "score") list.sort((a,b) => sc(b) - sc(a));
+  if (sort === "move") list.sort((a,b) => Math.abs(changeOf(b).pct || 0) - Math.abs(changeOf(a).pct || 0));
+  setHTML($("watchList"), list.length ? list.map(s => {
+    const c = changeOf(s), cls = c.pct == null ? "" : c.pct >= 0 ? "up" : "down";
+    return `<li><button class="row" type="button" data-sym="${esc(s)}" aria-current="${s === S.selected}">
+      <span class="sym">${esc(s)}</span><span class="px">${c.price != null ? fmt$(c.price) : "–"}</span>
+      <span class="nm">${esc(nameOf(s))}</span><span class="ch ${cls}">${fmtPct(c.pct)}</span>
+      <span class="bw">${badgeFor(s)}</span></button></li>`;
+  }).join("") : `<li class="hint">Your watchlist is empty. Look up a ticker, then click Add to watchlist.</li>`);
+  $("watchHint").textContent = S.watch.length > 50 ? "Only the first 50 stocks can stream live prices on the free plan; the rest update every couple of minutes." : "";
+}
+
+function renderDetail(){
+  const s = S.selected;
+  const show = !!s && universe().includes(s);
+  $("detEmpty").hidden = show; $("detBody").hidden = !show;
+  if (!show) return;
+  const d = D(s), a = d.a, c = changeOf(s);
+  $("hTicker").textContent = s;
+  const sec = sectorOf(s);
+  $("hName").textContent = [nameOf(s), sec ? SECTORS[sec] : ""].filter(Boolean).join(", ");
+  $("hPrice").textContent = c.price != null ? fmt$(c.price) : "–";
+  $("hChg").className = "chg " + (c.pct == null ? "" : c.pct >= 0 ? "up" : "down");
+  $("hChg").textContent = c.pct == null ? "" : `${c.ch >= 0 ? "+" : "−"}${fmtN(Math.abs(c.ch))} (${fmtPct(c.pct)}) today${d.liveAt && Date.now() - d.liveAt < 120000 ? ", live" : ""}`;
+  $("btnWatch").textContent = S.watch.includes(s) ? "Remove from watchlist" : "Add to watchlist";
+  renderEarnLine(s);
+
+  const blank = msg => { setHTML($("verdict"), msg ? `<p class="muted">${esc(msg)}</p>` : ""); setHTML($("factors"), ""); setHTML($("calcOut"), ""); setHTML($("calcSugg"), ""); setHTML($("stats"), ""); setHTML($("aiBox"), ""); setHTML($("aiSummary"), ""); };
+  if (d.tdErr){ blank(d.tdErr); drawChart(null); renderNews(s); return; }
+  if (!a){ blank("Loading price history…"); drawChart(null); renderNews(s); return; }
+  drawChart(s);
+  if (a.tooShort){ blank(okDays() < SCORE_MIN_BARS ? `Price history is still downloading (${a.n || 0} of 60 days needed to score).` : "This stock has less than 60 days of trading history, so it can't be scored yet."); renderNews(s); return; }
+
+  const pos = Math.max(0, Math.min(100, a.score));
+  setHTML($("verdict"), `<div class="vblock v-${a.verdict}">
+    <div><div class="vnum">${a.score}</div><span class="vof">out of 100</span></div>
+    <div>
+      <div class="vlabel">${VERDICT[a.verdict]}</div>
+      <p class="vhead">${esc(a.headline)}</p>
+      ${a.verdict === "wait" ? `<p class="vwait"><b>Wait until</b> ${esc(a.waits.join(", and "))}.</p>` : ""}
+      <div class="gwrap"><div class="gauge" aria-hidden="true"><span style="width:44%;background:var(--down);opacity:.55"></span><span style="width:25%;background:var(--accent);opacity:.55"></span><span style="width:31%;background:var(--up);opacity:.55"></span></div>
+      <div class="needle" style="left:${pos}%"></div></div>
+      <div class="glabels" aria-hidden="true"><span style="width:44%">Not a good buy</span><span style="width:25%">Wait</span><span style="width:31%">Good buy</span></div>
+    </div></div>`);
+
+  setHTML($("factors"), a.F.map(f => {
+    const ratio = f.pts / f.max, col = ratio >= 0.67 ? "var(--up)" : ratio >= 0.34 ? "var(--accent)" : "var(--down)";
+    return `<li><div class="f-top"><span class="f-name">${f.name}</span><span class="f-pts">${f.pts} of ${f.max}</span></div>
+      <div class="f-bar"><i style="width:${Math.round(ratio*100)}%;background:${col}"></i></div><p class="f-note">${esc(f.note)}</p></li>`;
+  }).join(""));
+
+  renderCalc();
+  renderSummary(s);
+  renderAI(s);
+  renderNews(s);
+
+  const L = d.bars.length - 1, st = (k, v, cls = "") => `<div class="stat"><div class="k">${k}</div><div class="v ${cls}">${v}</div></div>`;
+  const m = d.met && d.met.m;
+  setHTML($("stats"),
+    st("RSI (14 days)", fmtN(a.rsi,0), a.rsi > 75 ? "down" : "") +
+    st("20-day average", fmt$(a.s20[L])) + st("50-day average", fmt$(a.s50[L])) +
+    st("200-day average", a.s200 ? fmt$(a.s200[L]) : "Not enough data") +
+    st("Daily range (ATR)", fmt$(a.atr)) +
+    st("Volume vs normal", a.vr ? fmtN(a.vr,1) + "×" : "–") +
+    st("Avg daily volume", a.avgVol ? compact.format(a.avgVol) : "–") +
+    st("1-month return", fmtPct(a.r20*100,1), a.r20 >= 0 ? "up" : "down") +
+    st("vs SPY, 1 month", a.rsSpy == null ? "–" : fmtPct(a.rsSpy,1), a.rsSpy >= 0 ? "up" : "down") +
+    st("Support", fmt$(a.support)) + st("Resistance", a.resistance ? fmt$(a.resistance) : "None nearby") +
+    st("52-week high", fmt$(a.hi52)) +
+    (m ? st("P/E ratio", m.pe == null ? "–" : fmtN(m.pe,1)) : ""));
+}
+
+function renderCalc(){
+  const a = (S.data[S.selected] || {}).a; if (!a || a.tooShort) return;
+  const price = a.price, st = S.settings;
+  const amt = +st.amt || 0, g = Math.abs(+st.gain || 0), l = Math.abs(+st.loss || 0);
+  const sugG = (a.target / price - 1) * 100, sugL = (1 - a.stop / price) * 100;
+  setHTML($("calcSugg"), `<button class="chip" type="button" data-fill="gain" data-v="${sugG.toFixed(1)}">Suggested target +${fmtN(sugG,1)}% (${fmt$(a.target)})</button>
+    <button class="chip" type="button" data-fill="loss" data-v="${sugL.toFixed(1)}">Suggested stop −${fmtN(sugL,1)}% (${fmt$(a.stop)})</button>`);
+  if (!(amt > 0) || !(price > 0)){ setHTML($("calcOut"), `<p class="hint">Enter an amount to invest.</p>`); return; }
+  const shares = st.whole ? Math.floor(amt / price) : amt / price;
+  if (shares <= 0){ setHTML($("calcOut"), `<p class="hint">${fmt$(amt)} isn't enough for one whole share at ${fmt$(price)}. Turn off Whole shares only, or raise the amount.</p>`); return; }
+  const cost = shares * price, left = amt - cost;
+  const upP = price * (1 + g/100), dnP = price * (1 - l/100);
+  const shStr = st.whole ? shares.toLocaleString() : (+shares.toFixed(4)).toLocaleString(undefined, { maximumFractionDigits:4 });
+  const notes = [];
+  if (a.resistance && upP > a.resistance * 1.002) notes.push(`Your target is above resistance at ${fmt$(a.resistance)}, so the stock would need to break through that level first.`);
+  if (l > 0 && dnP > a.support) notes.push(`Your exit at ${fmt$(dnP)} is above support at ${fmt$(a.support)}, so a normal dip to support could sell you out early.`);
+  const ratio = l > 0 ? g / l : null;
+  setHTML($("calcOut"), `<div class="calc-out">
+    <div class="calc-head"><b>${fmt$(cost)}</b> buys ${shStr} share${shares === 1 ? "" : "s"} at ${fmt$(price)}${st.whole && left > 0.005 ? `, with ${fmt$(left)} left over` : ""}.</div>
+    <div class="calc-line"><b class="up">+${fmt$(shares*upP - cost)}</b><span>Up ${fmtN(g,1)}%: sell at ${fmt$(upP)} for ${fmt$(shares*upP)}</span></div>
+    <div class="calc-line"><b class="down">−${fmt$(cost - shares*dnP)}</b><span>Down ${fmtN(l,1)}%: sell at ${fmt$(dnP)} for ${fmt$(shares*dnP)}</span></div>
+    ${ratio != null ? `<div class="calc-ratio">Gain to loss: ${fmtN(ratio,1)} to 1${ratio < 2 ? ", below the 2 to 1 you're aiming for" : ""}.</div>` : ""}
+    ${notes.map(n => `<p class="calc-note">${esc(n)}</p>`).join("")}
+  </div>`);
+}
+
+function renderEarnLine(s){
+  const d = D(s), el = $("hEarn");
+  if (isFund(s)){ setHTML(el, ""); return; }
+  if (!d.earn){ setHTML(el, `<span class="muted">Next earnings: loading…</span>`); return; }
+  if (!d.earn.next){ setHTML(el, `<span class="muted">Next earnings: none in the next two months</span>`); return; }
+  const n = d.earn.next, days = daysBetween(today(), n.date), soon = days <= 14;
+  const when = `${fmtDate(n.date)}${n.hour === "bmo" ? ", before the open" : n.hour === "amc" ? ", after the close" : ""}`;
+  setHTML(el, `<span class="${soon ? "down" : ""}"><b>Next earnings:</b> ${when} (${days <= 0 ? "today" : "in " + days + " day" + (days === 1 ? "" : "s")})${soon ? ". Inside a typical holding window." : ""}</span>`);
+}
+function renderSummary(s){
+  const sc = D(s).scanAI, el = $("aiSummary");
+  if (!sc){
+    setHTML(el, `<div class="ai-sum empty"><p class="muted">${isFund(s) ? "Funds aren't included in the AI scan." : "This stock isn't in your latest AI scan yet. Click Run AI scan on the main page, or use the button below for this stock alone."}</p></div>`);
+    return;
+  }
+  const a = D(s).a, agree = a && !a.tooShort ? (RULE_TO_AI[a.verdict] === sc.v ? "Agrees with the score." : "Disagrees with the score, which is worth a closer look.") : "";
+  setHTML(el, `<div class="ai-sum">
+    <div class="ai-sum-head"><span class="badge ${AI_BADGE[sc.v]}">AI: ${AI_VERDICT[sc.v]}</span><span class="muted">From your AI scan, ${new Date(sc.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}. ${agree}</span></div>
+    <p>${esc(sc.s || sc.r)}</p></div>`);
+}
+function renderAI(s){
+  const d = D(s), box = $("aiBox");
+  if (!S.ai){ setHTML(box, `<button class="btn primary big" type="button" data-act="settings">Analyze with AI</button><p class="hint">Add a Claude API key in Settings first. About half a cent per stock.</p>`); return; }
+  if (d.aiBusy){ setHTML(box, `<div class="ai-box"><p class="muted" style="margin:0">Reading the news and checking the setup…</p></div>`); return; }
+  let html = "";
+  if (d.ai && d.ai.r){
+    const r = d.ai.r, list = arr => Array.isArray(arr) && arr.length ? `<ul>${arr.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
+    const agree = d.a && !d.a.tooShort ? (RULE_TO_AI[d.a.verdict] === r.verdict ? "Agrees with the score." : "Disagrees with the score, which is worth a closer look.") : "";
+    html = `<div class="ai-box">
+      <div class="ai-box-top"><span class="ai-verdict" style="color:${r.verdict === "good_buy" ? "var(--up)" : r.verdict === "not_good" ? "var(--down)" : "var(--accent)"}">${esc(AI_VERDICT[r.verdict] || r.verdict)}</span><span class="muted" style="font-size:13px">Detailed analysis</span></div>
+      <p style="margin:4px 0 0">${esc(r.headline)}</p>
+      ${list(r.reasons)}
+      ${r.wait_for ? `<p style="font-size:14px;margin:0 0 6px"><b>Wait for:</b> ${esc(r.wait_for)}</p>` : ""}
+      ${Array.isArray(r.catalysts) && r.catalysts.length ? `<h4>Catalysts</h4>${list(r.catalysts)}` : ""}
+      ${Array.isArray(r.risks) && r.risks.length ? `<h4>Risks</h4>${list(r.risks)}` : ""}
+      <div class="ai-foot"><span>${agree} News tone: ${esc(r.news_read || "unknown")}. Analyzed ${new Date(d.ai.at).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" })} with ${esc(MODEL_NAMES[d.ai.model] || d.ai.model)}.</span>
+      <button class="linkbtn" type="button" data-act="ai">Run again</button></div>
+    </div>`;
+  } else {
+    html = `<button class="btn primary big" type="button" data-act="ai">Analyze with AI</button>
+      <p class="hint">A deeper look at this one stock: full news, earnings history and every factor. About half a cent with Haiku.</p>`;
+  }
+  if (d.aiErr) html += `<p class="calc-note" style="border-left-color:var(--down)">${esc(d.aiErr)}</p>`;
+  setHTML(box, html);
+}
+function renderNews(s){
+  const d = D(s), box = $("newsBox");
+  if (isFund(s)){ setHTML(box, `<p class="hint" style="margin-top:0">News isn't loaded for funds.</p>`); return; }
+  let earn = "";
+  const p = d.earn && d.earn.past && d.earn.past[d.earn.past.length-1];
+  if (p && p.est != null && p.act != null) earn = `<div class="earn"><b>Last earnings report</b> (${fmtDate(p.date)}): ${fmt$(p.act)} per share vs ${fmt$(p.est)} expected, a <span class="${p.act >= p.est ? "up" : "down"}">${p.act >= p.est ? "beat" : "miss"}</span>.</div>`;
+  if (!d.news){ setHTML(box, earn + `<p class="hint" style="margin-top:0">${S.fh ? "Loading news…" : ""}</p>`); if (S.fh) fhTask("n:" + s, 0, () => loadNews(s)); return; }
+  if (!d.news.items.length){ setHTML(box, earn + `<p class="hint" style="margin-top:0">No news in the past three weeks.</p>`); return; }
+  setHTML(box, earn + `<ul class="news">${d.news.items.map(n => {
+    const when = new Date(n.t * 1000).toLocaleDateString("en-US", { month:"short", day:"numeric" });
+    const title = n.u ? `<a href="${esc(n.u)}" target="_blank" rel="noopener">${esc(n.h)}</a>` : `<b>${esc(n.h)}</b>`;
+    return `<li><div class="when">${when}${n.src ? ", " + esc(n.src) : ""}</div>${title}${n.s ? `<p>${esc(n.s)}</p>` : ""}</li>`;
+  }).join("")}</ul>`);
+}
+
+/* ---- Scan Results ---- */
+function resultRows(){
+  const f = S.f, q = f.q.trim().toUpperCase(), t = today();
+  const min = f.min === "" ? null : +f.min, max = f.max === "" ? null : +f.max;
+  let rows = scanList().map(s => {
+    const d = S.data[s] || {}, a = d.a && !d.a.tooShort ? d.a : null, c = changeOf(s);
+    const en = d.earn && d.earn.next ? d.earn.next.date : null;
+    return { s, d, a, c, name:nameOf(s), sec:sectorOf(s), ai:d.scanAI || null, en, ed: en ? daysBetween(t, en) : null };
+  });
+  rows = rows.filter(r => {
+    if (q && r.s.indexOf(q) !== 0 && r.name.toUpperCase().indexOf(q) < 0) return false;
+    if (f.verdict !== "all" && (!r.a || r.a.verdict !== f.verdict)) return false;
+    if (f.ai === "none" ? !!r.ai : (f.ai !== "all" && (!r.ai || r.ai.v !== f.ai))) return false;
+    if (f.sector !== "all" && r.sec !== f.sector) return false;
+    if (f.disagree && !(r.a && r.ai && RULE_TO_AI[r.a.verdict] !== r.ai.v)) return false;
+    if (f.noEarn && r.ed != null && r.ed <= 14) return false;
+    if (f.watchOnly && !S.watch.includes(r.s)) return false;
+    if (min != null && !(r.c.price >= min)) return false;
+    if (max != null && !(r.c.price <= max)) return false;
+    return true;
+  });
+  const sc = r => r.a ? r.a.score : -1, aiRank = { good_buy:0, wait:1, not_good:2 };
+  const sorts = {
+    score_desc:(x,y) => sc(y) - sc(x), score_asc:(x,y) => (x.a ? sc(x) : 999) - (y.a ? sc(y) : 999),
+    ai:(x,y) => ((x.ai ? aiRank[x.ai.v] : 3) - (y.ai ? aiRank[y.ai.v] : 3)) || sc(y) - sc(x),
+    move:(x,y) => Math.abs(y.c.pct || 0) - Math.abs(x.c.pct || 0),
+    m1:(x,y) => (y.a ? y.a.r20 : -9) - (x.a ? x.a.r20 : -9),
+    rr:(x,y) => (y.a ? y.a.rr : -1) - (x.a ? x.a.rr : -1),
+    earn:(x,y) => (x.en || "9999") < (y.en || "9999") ? -1 : (x.en || "9999") > (y.en || "9999") ? 1 : 0,
+    alpha:(x,y) => x.s.localeCompare(y.s)
+  };
+  return rows.sort(sorts[f.sort] || sorts.score_desc);
+}
+function renderResults(){
+  const rows = resultRows(), total = scanList().length, m = KV.get("scanmeta", null);
+  $("resCount").textContent = `Showing ${rows.length} of ${total} stocks.` + (m ? ` AI results from your scan on ${new Date(m.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}.` : " No AI scan yet; run one from the Dashboard.");
+  const secOpts = `<option value="all">All sectors</option>` + Object.keys(SECTORS).map(k => `<option value="${k}">${SECTORS[k]}</option>`).join("");
+  if ($("fSector").options.length < 2) $("fSector").innerHTML = secOpts;
+  setHTML($("resTable"), `<thead><tr><th>Stock</th><th>Sector</th><th>Price</th><th>Today</th><th>Score</th><th>Verdict</th><th class="wide">AI verdict</th><th>Reward to risk</th><th>1 month</th><th>Next earnings</th></tr></thead>
+  <tbody>${rows.length ? rows.map(r => `<tr data-sym="${esc(r.s)}" tabindex="0">
+    <td><span class="rs-sym">${esc(r.s)}</span><small>${esc(r.name)}</small></td>
+    <td class="muted">${r.sec ? SECTORS[r.sec] : "–"}</td>
+    <td>${fmt$(r.c.price)}</td>
+    <td class="${r.c.stale ? "muted" : r.c.pct >= 0 ? "up" : "down"}" ${r.c.stale ? 'title="Previous trading day"' : ""}>${fmtPct(r.c.pct)}</td>
+    <td class="rs-score">${r.a ? r.a.score : "–"}</td>
+    <td>${r.a ? `<span class="badge b-${r.a.verdict}">${VERDICT[r.a.verdict]}</span>` : r.d.tdErr ? `<span class="badge b-not">No data</span>` : `<span class="muted">Loading</span>`}</td>
+    <td class="wide">${r.ai ? `<span class="badge ${AI_BADGE[r.ai.v]}">${AI_VERDICT[r.ai.v]}</span><small>${esc(r.ai.r)}</small>` : `<span class="muted">Not scanned</span>`}</td>
+    <td>${r.a ? fmtN(r.a.rr,1) + ":1" : "–"}</td>
+    <td class="${r.a && r.a.r20 >= 0 ? "up" : "down"}">${r.a ? fmtPct(r.a.r20*100,1) : "–"}</td>
+    <td class="${r.ed != null && r.ed <= 14 ? "down" : ""}">${r.en ? fmtDate(r.en) + (r.ed <= 14 ? ` (${r.ed <= 0 ? "today" : r.ed + "d"})` : "") : r.d.earn ? "None soon" : "–"}</td>
+  </tr>`).join("") : `<tr><td colspan="10" class="muted" style="text-align:left">No stocks match these filters.</td></tr>`}</tbody>`);
+}
+function downloadCSV(){
+  const rows = resultRows();
+  const q = v => { const t = v == null ? "" : String(v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const head = ["Ticker","Company","Sector","Price","Today %","Score","Verdict","AI verdict","AI reason","AI summary","Reward to risk","Support","Resistance","Stop","Target","1 month %","RSI","Next earnings"];
+  const lines = [head.join(",")].concat(rows.map(r => [r.s, r.name, r.sec ? SECTORS[r.sec] : "", r2(r.c.price), r2(r.c.pct), r.a ? r.a.score : "", r.a ? VERDICT[r.a.verdict] : "",
+    r.ai ? AI_VERDICT[r.ai.v] : "", r.ai ? r.ai.r : "", r.ai ? r.ai.s : "", r.a ? r2(r.a.rr) : "", r.a ? r2(r.a.support) : "", r.a ? r2(r.a.resistance) : "", r.a ? r2(r.a.stop) : "", r.a ? r2(r.a.target) : "",
+    r.a ? r2(r.a.r20*100) : "", r.a ? r2(r.a.rsi) : "", r.en || ""].map(q).join(",")));
+  const blob = new Blob([lines.join("\n")], { type:"text/csv" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `swing-desk-scan-${today()}.csv`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+/* ---- Sectors ---- */
+const PERIODS = [["d1","1 day",null],["w1","1 week",5],["m1","1 month",21],["m3","3 months",63],["m6","6 months",126],["y1","1 year",252]];
+const SCALE = { d1:2, w1:4, m1:8, m3:15, m6:25, y1:40 };
+function sectorRow(etf){
+  const b = D(etf).bars, out = { etf };
+  PERIODS.forEach(([k,,n]) => {
+    if (!b || b.length < 2){ out[k] = null; return; }
+    if (n == null){ out[k] = changeOf(etf).pct; return; }
+    const c = b.map(x => x.c); const r = retN(c, n); out[k] = r == null ? null : r * 100;
+  });
+  return out;
+}
+function heat(v, k){
+  if (v == null) return "";
+  const pct = Math.round(Math.min(1, Math.abs(v) / SCALE[k]) * 55);
+  return `background:color-mix(in srgb, var(${v >= 0 ? "--up" : "--down"}) ${pct}%, var(--panel));`;
+}
+function renderSectors(){
+  const { col, dir } = S.secSort;
+  const rows = Object.keys(SECTORS).map(sectorRow).sort((a,b) => {
+    const va = a[col] == null ? -Infinity : a[col], vb = b[col] == null ? -Infinity : b[col];
+    return dir * (va - vb) || a.etf.localeCompare(b.etf);
+  });
+  const spy = sectorRow("SPY");
+  const cell = (r, k) => `<td style="${heat(r[k], k)}">${r[k] == null ? "–" : fmtPct(r[k],1)}</td>`;
+  setHTML($("secTable"), `<thead><tr><th scope="col">Sector</th>${PERIODS.map(([k,l]) => `<th scope="col"><button type="button" data-sort="${k}" ${k === col ? `aria-sort="${dir < 0 ? "descending" : "ascending"}"` : ""}>${l}</button></th>`).join("")}</tr></thead>
+    <tbody><tr class="bench"><td><span class="secname" style="cursor:default">S&amp;P 500 benchmark<small>SPY</small></span></td>${PERIODS.map(([k]) => cell(spy,k)).join("")}</tr>
+    ${rows.map(r => `<tr class="${S.secOpen === r.etf ? "open" : ""}"><td><button class="secname" type="button" data-sec="${r.etf}" aria-expanded="${S.secOpen === r.etf}">${SECTORS[r.etf]}<small>${r.etf}</small></button></td>${PERIODS.map(([k]) => cell(r,k)).join("")}</tr>`).join("")}</tbody>`);
+  if (!S.secOpen){ setHTML($("secStocks"), ""); return; }
+  const list = scanList().filter(s => sectorOf(s) === S.secOpen).map(s => ({ s, a:S.data[s] && S.data[s].a })).sort((x,y) => ((y.a && y.a.score) || 0) - ((x.a && x.a.score) || 0));
+  setHTML($("secStocks"), `<h3 style="font-size:17px;margin:0 0 8px">${SECTORS[S.secOpen]} stocks you're scanning</h3>` + (list.length ? `<div class="tablewrap"><table><thead><tr><th>Stock</th><th>Score</th><th>Verdict</th><th>1 month</th><th>Today</th></tr></thead><tbody>${list.map(x => {
+      const c = changeOf(x.s), ok = x.a && !x.a.tooShort;
+      return `<tr><td><button class="secname" type="button" data-sym="${esc(x.s)}">${esc(x.s)}<small>${esc(nameOf(x.s))}</small></button></td><td>${ok ? x.a.score : "–"}</td><td>${ok ? `<span class="badge b-${x.a.verdict}">${VERDICT[x.a.verdict]}</span>` : "–"}</td><td class="${ok && x.a.r20 >= 0 ? "up" : "down"}">${ok ? fmtPct(x.a.r20*100,1) : "–"}</td><td class="${c.pct >= 0 ? "up" : "down"}">${fmtPct(c.pct)}</td></tr>`;
+    }).join("")}</tbody></table></div>` : `<p class="hint">None of your scanned stocks are in this sector yet. You can add some in Settings.</p>`));
+}
+
+function notice(msg, isErr){ const n = $("notice"); n.hidden = false; n.textContent = msg; n.className = "notice" + (isErr ? " err" : ""); }
+function clearNotice(){ $("notice").hidden = true; }
+
+/* ================= Chart ================= */
+let chart = null, sCandle, s20L, s50L, sVol, chartSym = null, chartLen = 0, lineKey = "", pLines = [];
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function ensureChart(){
+  if (chart || !window.LightweightCharts) return !!chart;
+  chart = LightweightCharts.createChart($("chart"), { autoSize:true });
+  sCandle = chart.addCandlestickSeries({ borderVisible:false });
+  s20L = chart.addLineSeries({ lineWidth:2, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
+  s50L = chart.addLineSeries({ lineWidth:2, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
+  sVol = chart.addHistogramSeries({ priceFormat:{ type:"volume" }, priceScaleId:"", lastValueVisible:false, priceLineVisible:false });
+  sVol.priceScale().applyOptions({ scaleMargins:{ top:0.8, bottom:0 } });
+  sCandle.priceScale().applyOptions({ scaleMargins:{ top:0.06, bottom:0.24 } });
+  themeChart();
+  return true;
+}
+function themeChart(){
+  if (!chart) return;
+  const rule = cssVar("--rule"), up = cssVar("--up"), down = cssVar("--down");
+  chart.applyOptions({ layout:{ background:{ type:"solid", color:cssVar("--panel") }, textColor:cssVar("--muted"), fontFamily:"Archivo, system-ui, sans-serif" },
+    grid:{ vertLines:{ color:rule }, horzLines:{ color:rule } }, rightPriceScale:{ borderColor:rule }, timeScale:{ borderColor:rule }, crosshair:{ mode:0 } });
+  sCandle.applyOptions({ upColor:up, downColor:down, wickUpColor:up, wickDownColor:down });
+  s20L.applyOptions({ color:cssVar("--accent") }); s50L.applyOptions({ color:cssVar("--ink") });
+  S.volCol = { up: up + "66", down: down + "66" };
+  chartSym = null; lineKey = "";
+}
+function drawChart(s){
+  const msg = $("chartMsg");
+  if (!window.LightweightCharts){ msg.hidden = false; msg.textContent = "The chart library couldn't load. Check your internet connection and reload the page."; return; }
+  const d = s && S.data[s];
+  if (!d || !d.bars){ msg.hidden = false; msg.textContent = s ? "Waiting for price data…" : ""; if (chart){ [sCandle,s20L,s50L,sVol].forEach(x => x.setData([])); chartSym = null; } return; }
+  msg.hidden = true; ensureChart();
+  const bars = d.bars, a = d.a && !d.a.tooShort ? d.a : null, n = bars.length, L = n - 1;
+  const cd = b => ({ time:b.t, open:b.o, high:b.h, low:b.l, close:b.c });
+  const vd = b => ({ time:b.t, value:b.v, color: b.c >= b.o ? S.volCol.up : S.volCol.down });
+  if (chartSym !== s || chartLen !== n){
+    sCandle.setData(bars.map(cd)); sVol.setData(bars.map(vd));
+    const line = arr => arr ? bars.map((b,i) => arr[i] == null ? null : { time:b.t, value:arr[i] }).filter(Boolean) : [];
+    s20L.setData(line(a && a.s20)); s50L.setData(line(a && a.s50));
+    if (chartSym !== s) chart.timeScale().setVisibleLogicalRange({ from:Math.max(0, n - 120), to:n + 3 });
+    chartSym = s; chartLen = n;
+  } else {
+    sCandle.update(cd(bars[L])); sVol.update(vd(bars[L]));
+    if (a){ s20L.update({ time:bars[L].t, value:a.s20[L] }); s50L.update({ time:bars[L].t, value:a.s50[L] }); }
+  }
+  const key = a ? `${s}:${a.support.toFixed(2)}:${a.resistance}` : s;
+  if (key !== lineKey){
+    pLines.forEach(l => sCandle.removePriceLine(l)); pLines = [];
+    if (a){
+      pLines.push(sCandle.createPriceLine({ price:a.support, color:cssVar("--up"), lineWidth:1, lineStyle:2, axisLabelVisible:true, title:"Support" }));
+      if (a.resistance) pLines.push(sCandle.createPriceLine({ price:a.resistance, color:cssVar("--down"), lineWidth:1, lineStyle:2, axisLabelVisible:true, title:"Resistance" }));
+    }
+    lineKey = key;
+  }
+}
+
+/* ================= Actions ================= */
+function select(s){
+  S.selected = s; LS.set("sd2.selected", s);
+  if (s && !universe().includes(s)) S.lookups.push(s);
+  if (s){ loadCached(s); kickoff(); }
+  computeAll(); renderAll();
+  const nd = D(s || "");
+  if (s && S.fh && !isFund(s) && nd.news && Date.now() - nd.news.at > 30*60000) fhTask("n:" + s, 0, () => loadNews(s));
+}
+function validTicker(s){ return /^[A-Z0-9.\-\/]{1,12}$/.test(s); }
+function lookup(){
+  const inp = $("lookInput"), s = inp.value.trim().toUpperCase().replace(/\s+/g, "");
+  if (!s) return;
+  if (!validTicker(s)){ notice(`"${s}" doesn't look like a ticker. Use letters, like AAPL.`, true); return; }
+  inp.value = ""; clearNotice(); S.tab = "dash";
+  if (D(s).tdErr && !D(s).bars) D(s).tdErr = null;
+  select(s);
+  $("detail").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start" });
+}
+function toggleWatch(){
+  const s = S.selected; if (!s) return;
+  if (S.watch.includes(s)) S.watch = S.watch.filter(x => x !== s);
+  else S.watch.push(s);
+  LS.set("sd2.watch", S.watch); renderAll();
+}
+function kickoff(){
+  if (!S.td || !S.fh || !S.mv) return;
+  dayLoop(); tdLoop(); fhDaily();
+}
+function startDay(){
+  if (!S.td || !S.fh || !S.mv) return;
+  S.dayStarted = today(); S.scanDoneAt = null; fhStopped = false; S.skipDays = {}; S.allDirty = true;
+  universe().forEach(loadCached);
+  pruneStorage();
+  computeAll(); renderAll();
+  kickoff();
+  startSweep();
+  S.lastVolRefresh = Date.now(); S.lastDayCheck = Date.now();
+}
+function applyTheme(){
+  const t = S.settings.theme;
+  if (t === "system") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", t);
+  themeChart(); renderAll();
+}
+function saveSettings(){ LS.set("sd2.settings", S.settings); }
+
+/* ================= Events ================= */
+$("tabDash").addEventListener("click", () => { S.tab = "dash"; renderAll(); });
+$("tabRes").addEventListener("click", () => { S.tab = "results"; renderAll(); });
+$("tabSec").addEventListener("click", () => { S.tab = "sectors"; renderAll(); });
+$("btnScan").addEventListener("click", runScan);
+[["fSearch","q"],["fMin","min"],["fMax","max"]].forEach(([id,k]) => $(id).addEventListener("input", e => { S.f[k] = e.target.value; renderResults(); }));
+[["fSort","sort"],["fVerdict","verdict"],["fAI","ai"],["fSector","sector"]].forEach(([id,k]) => $(id).addEventListener("change", e => { S.f[k] = e.target.value; renderResults(); }));
+[["fDisagree","disagree"],["fEarn","noEarn"],["fWatch","watchOnly"]].forEach(([id,k]) => $(id).addEventListener("change", e => { S.f[k] = e.target.checked; renderResults(); }));
+$("fCsv").addEventListener("click", downloadCSV);
+$("fReset").addEventListener("click", () => {
+  S.f = { q:"", sort:S.f.sort, verdict:"all", ai:"all", sector:"all", disagree:false, noEarn:false, watchOnly:false, min:"", max:"" };
+  ["fSearch","fMin","fMax"].forEach(id => $(id).value = ""); ["fVerdict","fAI","fSector"].forEach(id => $(id).value = "all");
+  ["fDisagree","fEarn","fWatch"].forEach(id => $(id).checked = false); renderResults();
+});
+$("resTable").addEventListener("keydown", e => { if (e.key === "Enter"){ const tr = e.target.closest("[data-sym]"); if (tr) tr.click(); } });
+$("lookBtn").addEventListener("click", lookup);
+$("lookInput").addEventListener("keydown", e => { if (e.key === "Enter") lookup(); });
+$("sortSel").addEventListener("change", renderWatch);
+$("btnWatch").addEventListener("click", toggleWatch);
+document.addEventListener("click", e => {
+  const sym = e.target.closest("[data-sym]");
+  if (sym){ const fromOther = S.tab !== "dash"; S.tab = "dash"; select(sym.dataset.sym); if (fromOther || sym.classList.contains("pick") || sym.classList.contains("chip")) $("detail").scrollIntoView({ block:"start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); return; }
+  const act = e.target.closest("[data-act]");
+  if (act){ if (act.dataset.act === "ai") runAI(S.selected); if (act.dataset.act === "settings") openSettings(); return; }
+  const fill = e.target.closest("[data-fill]");
+  if (fill){ S.settings[fill.dataset.fill] = +fill.dataset.v; $(fill.dataset.fill === "gain" ? "cGain" : "cLoss").value = fill.dataset.v; saveSettings(); renderCalc(); return; }
+  const sort = e.target.closest("[data-sort]");
+  if (sort){ const k = sort.dataset.sort; S.secSort = { col:k, dir: S.secSort.col === k ? -S.secSort.dir : -1 }; renderSectors(); return; }
+  const sec = e.target.closest("[data-sec]");
+  if (sec){ S.secOpen = S.secOpen === sec.dataset.sec ? null : sec.dataset.sec; renderSectors(); return; }
+});
+[["cAmt","amt"],["cGain","gain"],["cLoss","loss"]].forEach(([id,k]) => $(id).addEventListener("input", e => { S.settings[k] = +e.target.value; saveSettings(); renderCalc(); }));
+$("cWhole").addEventListener("change", e => { S.settings.whole = e.target.checked; saveSettings(); renderCalc(); });
+
+$("btnRefresh").addEventListener("click", () => {
+  if (!S.td || !S.fh || !S.mv) return;
+  clearNotice(); fhStopped = false; wsFails = 0; S.skipDays = {};
+  universe().forEach(s => { if (D(s).tdErr) D(s).tdErr = null; });
+  kickoff(); startSweep();
+  if (S.selected && !isFund(S.selected)) fhTask("n:" + S.selected, 0, () => loadNews(S.selected));
+  if (marketOpen()) wsConnect();
+});
+$("obSave").addEventListener("click", () => {
+  const t = $("obTdKey").value.trim(), f = $("obFhKey").value.trim(), m = $("obMvKey").value.trim();
+  if (t){ S.td = t; LS.set("sd2.td", t); }
+  if (f){ S.fh = f; LS.set("sd2.fh", f); }
+  if (m){ S.mv = m; LS.set("sd2.mv", m); }
+  const missing = [!S.td && "Twelve Data", !S.fh && "Finnhub", !S.mv && "Massive"].filter(Boolean);
+  if (missing.length){ notice("Still missing: the " + missing.join(" and ") + " key. Paste it in and click Save again.", true); renderAll(); return; }
+  clearNotice(); startDay();
+});
+
+const dlgS = $("dlgSettings"), dlgH = $("dlgHelp");
+document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
+document.querySelectorAll("[data-show]").forEach(b => b.addEventListener("click", () => { const i = $(b.dataset.show); const show = i.type === "password"; i.type = show ? "text" : "password"; b.textContent = show ? "Hide" : "Show"; }));
+$("btnHelp").addEventListener("click", () => dlgH.showModal());
+function openSettings(){
+  $("setTd").value = S.td; $("setFh").value = S.fh; $("setMv").value = S.mv; $("setAi").value = S.ai;
+  ["setTd","setFh","setMv","setAi"].forEach(id => $(id).type = "password");
+  document.querySelectorAll("[data-show]").forEach(b => b.textContent = "Show");
+  $("setModel").value = S.settings.aiModel; $("setCap").value = S.settings.aiCap;
+  $("setScan").value = S.scan.join(" "); $("setTheme").value = S.settings.theme;
+  dlgS.showModal();
+}
+$("btnSettings").addEventListener("click", openSettings);
+$("scanReset").addEventListener("click", () => { $("setScan").value = DEFAULT_SCAN.join(" "); });
+$("setSave").addEventListener("click", () => {
+  const t = $("setTd").value.trim(), f = $("setFh").value.trim(), mk = $("setMv").value.trim(), a = $("setAi").value.trim();
+  const keysChanged = t !== S.td || f !== S.fh || mk !== S.mv;
+  S.td = t; S.fh = f; S.mv = mk; S.ai = a;
+  LS.set("sd2.td", t); LS.set("sd2.fh", f); LS.set("sd2.mv", mk); LS.set("sd2.ai", a);
+  S.settings.aiModel = $("setModel").value; S.settings.theme = $("setTheme").value;
+  S.settings.aiCap = Math.max(0, +$("setCap").value || 0);
+  const list = uniq($("setScan").value.toUpperCase().split(/[\s,;]+/).filter(validTicker));
+  S.scan = list.slice(0, 600); LS.set("sd2.scan", S.scan);
+  saveSettings(); dlgS.close(); applyTheme(); clearNotice();
+  if (keysChanged){ Object.values(S.data).forEach(d => { d.tdErr = null; }); wsClose(); wsFails = 0; startDay(); }
+  else { universe().forEach(loadCached); kickoff(); startSweep(); }
+  if (list.length > 600) notice("Your scan list was trimmed to the first 600 stocks.");
+});
+$("setClear").addEventListener("click", () => {
+  if (!confirm("This deletes the saved price history, news and AI results. The first-time download (about 45 minutes) will run again. Continue?")) return;
+  KV.keys().filter(k => /^(h|n|e|m|a|bad)\./.test(k) || k === "days" || k === "earnbulk").forEach(k => KV.del(k));
+  S.data = {}; dlgS.close(); chartSym = null; startDay();
+});
+$("bkSave").addEventListener("click", () => {
+  const data = { app:"swing-desk", version:3, saved:new Date().toISOString(), td:S.td, fh:S.fh, mv:S.mv, ai:S.ai, watch:S.watch, scan:S.scan, settings:S.settings };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `swing-desk-backup-${today()}.json`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+});
+$("bkLoad").addEventListener("click", () => $("bkFile").click());
+$("bkFile").addEventListener("change", async e => {
+  const file = e.target.files && e.target.files[0]; if (!file) return;
+  try{
+    const j = JSON.parse(await file.text());
+    if (j.app !== "swing-desk") throw new Error();
+    if (j.td != null) LS.set("sd2.td", j.td); if (j.fh != null) LS.set("sd2.fh", j.fh); if (j.mv != null) LS.set("sd2.mv", j.mv); if (j.ai != null) LS.set("sd2.ai", j.ai);
+    if (j.version >= 3) LS.set("sd2.scanver", 3);
+    if (Array.isArray(j.watch)) LS.set("sd2.watch", j.watch); if (Array.isArray(j.scan)) LS.set("sd2.scan", j.scan);
+    if (j.settings) LS.set("sd2.settings", j.settings);
+    location.reload();
+  }catch(err){ dlgS.close(); notice("That file isn't a Swing Desk backup. Choose the .json file you downloaded from Settings.", true); }
+  e.target.value = "";
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { themeChart(); renderAll(); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && marketOpen() && Date.now() - S.lastSweep > 90000) startSweep(); });
+
+/* ================= Clock ================= */
+setInterval(() => {
+  const open = marketOpen();
+  if (S.td && S.fh && S.mv){
+    if (S.dayStarted && S.dayStarted !== today()) startDay();
+    if (Date.now() - S.lastDayCheck > 30*60000){ S.lastDayCheck = Date.now(); S.skipDays = {}; dayLoop(); }
+    if (Date.now() - S.lastCand > 60000) fhCandidates();
+    if (open){
+      wsConnect();
+      const quoting = fhQueue.some(t => t.key.startsWith("q:"));
+      if (!quoting && !document.hidden && Date.now() - S.lastSweep > 120000) startSweep();
+      if (!document.hidden && Date.now() - S.lastVolRefresh > 30*60000) volRefresh();
+    } else if (ws) wsClose();
+    if (S.wasOpen === true && !open) startSweep();
+  }
+  S.wasOpen = open;
+  renderStatus();
+}, 5000);
+
+/* ================= Start ================= */
+(async function start(){
+  $("cAmt").value = S.settings.amt; $("cGain").value = S.settings.gain; $("cLoss").value = S.settings.loss; $("cWhole").checked = !!S.settings.whole;
+  if (!S.selected) S.selected = S.watch[0] || null;
+  S.wasOpen = marketOpen();
+  await KV.init();
+  migrateOldCache();
+  if (!KV.ok) notice("This browser won't let the page save price history, so it will re-download each time you open it. Chrome or Edge work best; putting the site online with GitHub Pages also fixes this.", true);
+  applyTheme();
+  if (S.td && S.fh && S.mv) startDay(); else renderAll();
+})();
+})();
+</script>
+</body>
+</html>
