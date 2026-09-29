@@ -293,6 +293,35 @@ tr.open td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .sug p{margin:0 0 8px;font-size:14px}
 .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 14px}
 
+/* Final verdict + AI labels */
+.vnum.sc-hi{color:var(--up) !important} .vnum.sc-mid{color:var(--accent) !important} .vnum.sc-lo{color:var(--down) !important}
+.votes{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;margin-top:6px}
+.t-buy{color:var(--up)} .t-wait{color:var(--accent)} .t-not{color:var(--down)}
+.vheld{margin:6px 0 0;font-size:14px}
+.vnote{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.src-tag{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.clash{font-size:14px;padding:10px 12px;border-radius:8px;background:var(--waitbg);margin:0 0 14px}
+/* Financials */
+.fin-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+#finBox h4{font-size:15px;margin:0 0 6px}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--panel);padding:6px 14px;font-weight:700;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.finsvg{width:100%;height:auto;display:block;max-width:760px}
+.fin-legend{margin:4px 0 6px}
+.fin-legend .dot{width:9px;height:9px;border-radius:50%}
+.eps-sum{font-size:14px;font-weight:700;margin:4px 0 0}
+.fundtable{width:100%;border-collapse:collapse;min-width:620px}
+.fundtable th,.fundtable td{padding:8px 10px;border-bottom:1px solid var(--rule);text-align:right;font-size:14px}
+.fundtable thead th{font-size:12px;color:var(--muted);background:var(--paper)}
+.fundtable thead th small{display:block;font-weight:500}
+.fundtable tbody th{text-align:left;font-weight:600}
+.fundtable td.good{color:var(--up);font-weight:700;background:color-mix(in srgb, var(--up) 10%, transparent)}
+.fundtable td.bad{color:var(--down);font-weight:700;background:color-mix(in srgb, var(--down) 10%, transparent)}
+.fundtable td.flat{color:var(--muted)}
+.fundtable td small{display:block;color:var(--muted);font-weight:500;margin-top:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
 /* Onboarding + dialogs */
 .onboard{max-width:720px}
 .onboard h2{font-size:30px;font-weight:800;font-stretch:75%;margin-bottom:8px}
@@ -472,6 +501,11 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
           </div>
 
           <div class="section">
+            <h3 style="font-size:17px;font-weight:800;font-stretch:85%;margin-bottom:10px">Financials</h3>
+            <div id="finBox"></div>
+          </div>
+
+          <div class="section">
             <h3 style="font-size:17px;font-weight:800;font-stretch:85%;margin-bottom:10px">Recent news</h3>
             <div id="newsBox"></div>
           </div>
@@ -491,17 +525,17 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
       <div class="filters">
         <input id="fSearch" type="search" placeholder="Search ticker or company" aria-label="Search ticker or company">
         <label>Sort <select id="fSort">
-          <option value="score_desc">Score: best first</option><option value="score_asc">Score: worst first</option>
+          <option value="score_desc">Score: best first</option><option value="score_asc">Score: worst first</option><option value="final">Final verdict</option>
           <option value="ai">AI verdict</option><option value="move">Biggest movers today</option>
           <option value="m1">1-month performance</option><option value="y1">1-year performance</option><option value="rr">Reward to risk</option>
           <option value="earn">Soonest earnings</option><option value="alpha">A to Z</option></select></label>
-        <label>Verdict <select id="fVerdict"><option value="all">All</option><option value="buy">Good buy</option><option value="wait">I would wait</option><option value="not">Not a good buy</option></select></label>
-        <label>AI verdict <select id="fAI"><option value="all">All</option><option value="good_buy">Good buy</option><option value="wait">I would wait</option><option value="not_good">Not a good buy</option><option value="none">Not scanned</option></select></label>
+        <label>Final verdict <select id="fVerdict"><option value="all">All</option><option value="buy">Good buy</option><option value="wait">I would wait</option><option value="not">Not a good buy</option></select></label>
+        <label>AI scan <select id="fAI"><option value="all">All</option><option value="good_buy">Good buy</option><option value="wait">I would wait</option><option value="not_good">Not a good buy</option><option value="none">Not scanned</option></select></label>
         <label>Sector <select id="fSector"><option value="all">All sectors</option></select></label>
         <label>Price $<input id="fMin" type="number" min="0" inputmode="decimal" placeholder="min" class="short"> to $<input id="fMax" type="number" min="0" inputmode="decimal" placeholder="max" class="short"></label>
       </div>
       <div class="filters checks">
-        <label class="toggle"><input type="checkbox" id="fDisagree"> AI disagrees with the score</label>
+        <label class="toggle"><input type="checkbox" id="fDisagree"> AI scan disagrees with the chart score</label>
         <label class="toggle"><input type="checkbox" id="fEarn"> Hide earnings in the next 14 days</label>
         <label class="toggle"><input type="checkbox" id="fWatch"> Watchlist only</label>
         <button class="linkbtn" id="fReset" type="button">Clear filters</button>
@@ -688,6 +722,10 @@ footer{max-width:1500px;margin:0 auto;padding:0 20px 28px;font-size:12px;color:v
       <li>On each other computer, paste the same token into Settings. Your trades and watchlist load within a few seconds.</li>
     </ol>
     <p>Only your trades and watchlist sync. Your API keys never leave each browser.</p>
+    <h3>The final verdict</h3>
+    <p>The big verdict on each stock combines up to three opinions: the chart score, your AI scan, and a detailed analysis if you ran one. If only the chart score is available, it decides. With two, agreement wins; one step apart, the more cautious view wins; opposite views give I would wait. With three, two of three decide, and if all three differ the result is I would wait. Deal-breakers (earnings in your window, an AI red flag, poor reward to risk, a market selloff, or a longer-term downtrend with price just under its 50-day average) can't be outvoted into a Good buy. AI opinions count for 3 trading days. A stock is only called Not a good buy by the chart when the score is below 45 or the price is more than 3% below a 50-day average that is itself below the 200-day.</p>
+    <h3>Financials</h3>
+    <p>Each stock's page shows revenue, expenses, net income and net margin from the company's SEC filings (last 5 quarters or 5 fiscal years), expected vs. actual earnings per share for the last 4 quarters, and a fundamentals table colored green when a number improved and red when it got worse. Guidance comes from the AI's read of recent headlines, so it's only as complete as the news.</p>
     <h3>News in the score</h3>
     <p>Before an AI scan, the Catalyst factor counts how much news a stock has. After a scan, the AI's rating of the news (from strong positive to negative) replaces that count, and the score updates. If the AI spots serious negative news, like a guidance cut or an investigation, the stock can't be a Good buy. News ratings count for 3 trading days.</p>
     <h3>Scoring rules</h3>
@@ -1342,7 +1380,8 @@ function loadCached(s){
   if (!d.earn) d.earn = KV.get("e." + s, undefined);
   if (!d.met) d.met = KV.get("m." + s, undefined);
   if (!d.news) d.news = KV.get("n." + s, undefined);
-  if (!d.ai){ const a = KV.get("a." + s, null); if (a && a.d === today()) d.ai = a; }
+  if (!d.ai){ const a = KV.get("a." + s, null); if (a && a.at && weekdaysAfter(etDateMs(a.at), today()) <= 3) d.ai = a; }
+  if (!d.fin) d.fin = KV.get("fin." + s, undefined);
   if (!d.naiDeep) d.naiDeep = KV.get("nai." + s, undefined);
   if (!d.scanAI){ const sc = KV.get("scanai", null); if (sc && sc.results && sc.results[s]) d.scanAI = sc.results[s]; }
   const bad = KV.get("bad." + s, null);
@@ -1360,9 +1399,10 @@ function migrateOldCache(){
 function pruneStorage(){
   const u = new Set(universe()), t = today();
   KV.keys().forEach(k => {
-    const m = k.match(/^(h|n|a|e|m|nai)\.(.+)$/); if (!m) return;
-    if (!u.has(m[2])){ KV.del(k); return; }
-    if (m[1] === "a"){ const v = KV.get(k, null); if (!v || v.d !== t) KV.del(k); }
+    const m = k.match(/^(h|n|a|e|m|nai|fin)\.(.+)$/); if (!m) return;
+    if (!u.has(m[2]) && m[1] !== "fin"){ KV.del(k); return; }
+    if (m[1] === "a"){ const v = KV.get(k, null); if (!v || !v.at || daysBetween(etDateMs(v.at), t) > 7) KV.del(k); }
+    if (m[1] === "fin"){ const v = KV.get(k, null); if (!v || daysBetween(v.d, t) > 30) KV.del(k); }
   });
 }
 function sectorOf(s){
@@ -1626,30 +1666,40 @@ function scoreFor(sym, ctx){
 
   /* Score, deal-breakers and verdict */
   const score = Math.max(1, Math.min(100, F.reduce((a,f) => a + f.pts, 0)));
-  const strongDown = s200 ? (price < s50[L] && s50[L] < s200[L]) : (price < s50[L] && s20[L] < s50[L] && lh && ll);
-  const waits = [];
-  if (earnSoon) waits.push(`earnings on ${fmtDate(earnSoon)} are out of the way`);
-  if (redFlag) waits.push(`the negative news is resolved (AI flagged: ${redFlag})`);
-  if (rr < RULE.rrMin) waits.push(idealEntry < price * 0.995 && RULE.rrMin <= 2.05 ? `a pullback toward ${fmt$(idealEntry)}, where reward to risk would be about 2:1` : `a better entry, since reward to risk is ${fmtN(rr,1)}:1 and you want at least ${fmtN(RULE.rrMin,1)}:1`);
-  if (r > RULE.rsiMax) waits.push("RSI cools off from overbought");
-  if (M && M.selloff) waits.push("the market selloff eases");
-  if (RULE.needMarketUp && M && !M.spyAbove50) waits.push("SPY climbs back above its 50-day average (one of your rules)");
-  if (RULE.maxDist > 0 && distATR > RULE.maxDist) waits.push(`a pullback closer to support near ${fmt$(support)} (one of your rules)`);
+  const s50L = s50[L], s200L = s200 ? s200[L] : null;
+  const pct50 = (price / s50L - 1) * 100, pct200 = s200L ? (price / s200L - 1) * 100 : null;
+  const longDown = s200 ? s50L < s200L : (s20[L] < s50L && lh && ll);
+  const deepDown = price < s50L && longDown && pct50 <= -3;              // clearly in a downtrend
+  const mildDown = price < s50L && longDown && !deepDown;                 // just under the 50-day in a longer downtrend
+  const blockers = [];
+  if (earnSoon) blockers.push({ key:"earnings", text:`earnings on ${fmtDate(earnSoon)} are out of the way`, why:`earnings in ${daysBetween(td0, earnSoon)} days, inside your ${RULE.earnDays}-day window` });
+  if (redFlag) blockers.push({ key:"redflag", text:`the negative news is resolved (AI flagged: ${redFlag})`, why:`AI red flag: ${redFlag}` });
+  if (rr < RULE.rrMin) blockers.push({ key:"rr", text: idealEntry < price * 0.995 && RULE.rrMin <= 2.05 ? `a pullback toward ${fmt$(idealEntry)}, where reward to risk would be about 2:1` : `a better entry, since reward to risk is ${fmtN(rr,1)}:1 and you want at least ${fmtN(RULE.rrMin,1)}:1`, why:`reward to risk is only ${fmtN(rr,1)}:1` });
+  if (r > RULE.rsiMax) blockers.push({ key:"rsi", text:"RSI cools off from overbought", why:`RSI ${fmtN(r,0)} is above your limit of ${RULE.rsiMax}` });
+  if (M && M.selloff) blockers.push({ key:"selloff", text:"the market selloff eases", why:"the market is in a selloff" });
+  if (RULE.needMarketUp && M && !M.spyAbove50) blockers.push({ key:"mkt", text:"SPY climbs back above its 50-day average (one of your rules)", why:"SPY is below its 50-day average (your rule)" });
+  if (RULE.maxDist > 0 && distATR > RULE.maxDist) blockers.push({ key:"dist", text:`a pullback closer to support near ${fmt$(support)} (one of your rules)`, why:`price is ${fmtN(distATR,1)}× the daily range above support (your limit is ${RULE.maxDist})` });
+  if (mildDown) blockers.push({ key:"trend", text:`the price closes back above its 50-day average (${fmt$(s50L)})`, why:`longer-term downtrend: price is ${fmtN(Math.abs(pct50),1)}% below its 50-day average, and the 50-day is ${s200 ? "below the 200-day" : "falling"}` });
+  const waits = blockers.map(x => x.text);
   let verdict, headline;
-  if (score < 45 || strongDown){
+  if (score < 45 || deepDown){
     verdict = "not";
-    headline = strongDown ? "The trend is down: price is below falling averages. Better setups are elsewhere." : "Too few factors line up right now.";
-  } else if (score >= RULE.buyScore && !waits.length){
+    headline = deepDown ? `The trend is down: price is ${fmtN(Math.abs(pct50),1)}% below its 50-day average, and the 50-day is ${s200 ? "below the 200-day" : "falling"}.` : "Too few factors line up right now.";
+  } else if (score >= RULE.buyScore && !blockers.length){
     verdict = "buy";
     headline = `Strong chart and a real setup, with about ${fmtN(rr,1)}:1 reward to risk at today's price.`;
   } else {
     verdict = "wait";
     if (!waits.length) waits.push(`more factors line up (the score is ${score}; a good buy needs ${RULE.buyScore} or more)`);
-    headline = score >= RULE.buyScore ? "A strong stock, but not at a good moment to buy." : "Some things are working, but not enough yet.";
+    headline = score >= RULE.buyScore ? "A strong score, held back by a deal-breaker." : "Some things are working, but not enough yet.";
   }
+  const held = score >= RULE.buyScore && verdict !== "buy" ? (deepDown ? [`clear downtrend: price is ${fmtN(Math.abs(pct50),1)}% below its 50-day average`] : blockers.map(x => x.why)) : [];
+  const earnDays = E && E.next ? daysBetween(td0, E.next.date) : null;
+  const strongDown = deepDown;
 
   return { price, score, verdict, headline, waits, F, support, resistance, stop, target, target2, rr, idealEntry, atr:atrv,
     rsi:r, s20:s20, s50:s50, s200:s200, vr, avgVol, r20, r63, r252:retN(c, 252), rsSpy, rsSec, sec, earnSoon, hi52, breakout, strongDown,
+    blockers, held, pct50, pct200, longDown, deepDown, mildDown, earnDays,
     distATR, secp, n7, newsAnalyzed, newsRating, redFlag, newsAt, mktUp: M ? M.spyAbove50 : null, selloff: M ? M.selloff : null };
 }
 
@@ -1671,6 +1721,8 @@ const FRAMEWORK = `You are a swing-trading analyst helping one person evaluate U
 Final test: if the person had no position, would they want to buy at this exact price?
 If the person's own trading history or patterns are provided, take them into account. For example, point out when a setup resembles ones that have not worked for them. Mention when their history is based on only a few trades.
 
+Use the exact numbers provided. Do not recalculate dates or distances yourself: for example, use days_until_earnings and earnings_inside_holding_window as given (the holding window is 28 days).
+The site lists its deal-breakers in site_deal_breakers. Respect them: do not call a stock a good buy while a deal-breaker applies, unless the news clearly justifies an exception, and if you make one, say so plainly in your reasons.
 The site has already computed a rules-based score out of 100. Your added value is reading the news headlines and earnings information for catalysts and risks that rules cannot judge, and sanity-checking the score. Use only the facts provided. Do not invent news, numbers, dates or events. If the news is thin or unclear, say so. Write for a beginner: plain words, and explain any jargon briefly.`;
 const AI_SYSTEM = FRAMEWORK + `
 
@@ -1683,7 +1735,10 @@ Respond with ONLY a JSON object, with no markdown and no text before or after it
  "wait_for": "if verdict is wait, the specific thing to wait for, with a price level when possible; otherwise an empty string",
  "news_read": "positive" | "mixed" | "negative" | "quiet",
  "news_rating": "strong_positive" | "positive" | "neutral" | "quiet" | "negative",
- "red_flag": "if the news contains a serious negative such as a guidance cut, lawsuit, investigation, accounting problem or failed trial, a short description; otherwise an empty string"}`;
+ "red_flag": "if the news contains a serious negative such as a guidance cut, lawsuit, investigation, accounting problem or failed trial, a short description; otherwise an empty string",
+ "guidance": "raised" | "lowered" | "maintained" | "none",
+ "guidance_note": "if the headlines mention the company's own outlook or guidance, one short sentence on it; otherwise an empty string"}
+Only report guidance that the headlines actually mention; use "none" otherwise.`;
 const SCAN_SYSTEM = FRAMEWORK + `
 
 You will receive facts for several stocks at once. Judge each one on its own facts. Respond with ONLY a JSON array, with no markdown and no text before or after it, containing one object per stock with exactly these keys:
@@ -1692,8 +1747,10 @@ You will receive facts for several stocks at once. Judge each one on its own fac
  "reason": "one line under 15 words",
  "summary": "3 to 4 plain-English sentences on whether this is a good buy right now. Combine what the news says with the chart, score, earnings timing and fundamentals. When useful, name a specific price to watch.",
  "news": "strong_positive" | "positive" | "neutral" | "quiet" | "negative",
- "red_flag": "a short description if the news contains a serious negative such as a guidance cut, lawsuit, investigation, accounting problem or failed trial; otherwise an empty string"}
-Rate "news" from the headlines only: strong_positive for a clear, significant catalyst; quiet when there is little or no news.`;
+ "red_flag": "a short description if the news contains a serious negative such as a guidance cut, lawsuit, investigation, accounting problem or failed trial; otherwise an empty string",
+ "guidance": "raised" | "lowered" | "maintained" | "none",
+ "guidance_note": "one short sentence if the headlines mention the company's own outlook or guidance; otherwise an empty string"}
+Rate "news" from the headlines only: strong_positive for a clear, significant catalyst; quiet when there is little or no news. Report guidance only when the headlines actually mention it; use "none" otherwise.`;
 
 function costOf(model, u){
   const r = RATES[model]; if (!r || !u) return 0;
@@ -1733,12 +1790,22 @@ function marketFacts(){
   return M ? { spy_above_50_day:M.spyAbove50, spy_above_200_day:M.spyAbove200, qqq_above_50_day:M.qqqAbove50, spy_5_day_pct:r2(M.ret5*100), selloff:M.selloff } : null;
 }
 
+function preciseFacts(s){
+  const a = D(s).a, E = D(s).earn;
+  return {
+    days_until_earnings: a.earnDays, earnings_inside_holding_window: a.earnDays != null ? a.earnDays <= 28 : null, holding_window_days: 28,
+    price_vs_50_day_pct: r2(a.pct50), price_vs_200_day_pct: r2(a.pct200),
+    trend_state: a.deepDown ? "clear downtrend (well below a 50-day that is below the 200-day)" : a.mildDown ? "just below the 50-day average within a longer downtrend" : a.pct50 >= 0 ? "above the 50-day average" : "below the 50-day average",
+    site_deal_breakers: a.blockers.map(b => b.why)
+  };
+}
+
 /* ---- Deep, single-stock analysis ---- */
 function aiFacts(s){
   const d = D(s), a = d.a, L = d.bars.length - 1, ch = changeOf(s);
   return {
     ticker:s, name:nameOf(s), sector:a.sec ? SECTORS[a.sec] : null, date:today(), market_open_now:marketOpen(),
-    price:r2(a.price), change_today_pct:r2(ch.pct),
+    price:r2(a.price), change_today_pct:r2(ch.pct), key_facts:preciseFacts(s),
     site_score_out_of_100:a.score, site_verdict:{ buy:"good_buy", wait:"wait", not:"not_good" }[a.verdict], site_wait_for:a.waits,
     factor_breakdown:a.F.map(f => ({ factor:f.name, points:f.pts, max:f.max, note:f.note })),
     levels:{ support:r2(a.support), resistance:r2(a.resistance), suggested_stop:r2(a.stop), first_target:r2(a.target), second_target:r2(a.target2), reward_to_risk:r2(a.rr), high_52_week:r2(a.hi52) },
@@ -1770,7 +1837,8 @@ async function runAI(s){
     }
     const t = out.text, i0 = t.indexOf("{"), i1 = t.lastIndexOf("}");
     if (i0 < 0 || i1 < i0) throw new Error("The AI's answer couldn't be read. Try again.");
-    d.ai = { d:today(), at:Date.now(), model:S.settings.aiModel, r:JSON.parse(t.slice(i0, i1 + 1)) };
+    d.ai = { d:today(), at:Date.now(), model:S.settings.aiModel, px:d.a.price, r:JSON.parse(t.slice(i0, i1 + 1)) };
+    d.ai.r.verdict = normVerdict(d.ai.r.verdict);
     KV.set("a." + s, d.ai);
     const nr = normNews(d.ai.r.news_rating);
     if (nr){ d.naiDeep = { n:nr, rf:String(d.ai.r.red_flag || "").slice(0, 160), at:d.ai.at }; KV.set("nai." + s, d.naiDeep); touch(s); scheduleRender(); }
@@ -1785,13 +1853,14 @@ function compactFacts(s){
   const d = D(s), a = d.a, ch = changeOf(s);
   const o = {
     ticker:s, name:nameOf(s), sector:a.sec ? SECTORS[a.sec] : null, price:r2(a.price), change_pct:r2(ch.pct),
-    score:a.score, site_verdict:{ buy:"good_buy", wait:"wait", not:"not_good" }[a.verdict],
+    score:a.score, site_verdict:{ buy:"good_buy", wait:"wait", not:"not_good" }[a.verdict], key_facts:preciseFacts(s),
     factors:a.F.map(f => `${f.name} ${f.pts}/${f.max}`).join("; "),
     trend:a.F[0].note, volume:a.F[2].note,
     levels:{ support:r2(a.support), resistance:r2(a.resistance), stop:r2(a.stop), target:r2(a.target), reward_to_risk:r2(a.rr) },
     rsi:r2(a.rsi), return_1m_pct:r2(a.r20*100), vs_spy_1m_pts:r2(a.rsSpy),
     next_earnings:d.earn && d.earn.next ? d.earn.next.date : (d.earn ? "none in next 2 months" : "unknown")
   };
+  delete o.site_wait_for;
   if (a.verdict === "wait") o.site_wait_for = a.waits;
   if (d.met) o.fundamentals = { revenue_growth_pct:r2(d.met.m.rg), eps_growth_pct:r2(d.met.m.eg), net_margin_pct:r2(d.met.m.nm) };
   if (d.news){ o.stories_this_week = d.news.n7; o.headlines = d.news.items.slice(0, 5).map(n => new Date(n.t*1000).toISOString().slice(5,10) + " " + n.h); }
@@ -1800,6 +1869,7 @@ function compactFacts(s){
   return o;
 }
 function normNews(v){ v = String(v || "").toLowerCase().replace(/[\s-]+/g, "_"); return NEWS_PTS[v] != null ? v : (v.indexOf("strong") === 0 ? "strong_positive" : v.indexOf("pos") === 0 ? "positive" : v.indexOf("neg") === 0 ? "negative" : v ? "neutral" : null); }
+function normGuide(v){ v = String(v || "").toLowerCase(); return /rais/.test(v) ? "raised" : /lower|cut/.test(v) ? "lowered" : /maint|reaffirm|same/.test(v) ? "maintained" : "none"; }
 function normVerdict(v){ v = String(v || "").toLowerCase(); return v.indexOf("good") === 0 ? "good_buy" : v.indexOf("not") === 0 ? "not_good" : "wait"; }
 async function scanBatch(batch){
   const pats = myPatterns();
@@ -1818,7 +1888,8 @@ async function scanBatch(batch){
         const s = String(r && r.ticker || "").toUpperCase();
         if (!batch.includes(s) || got.has(s)) return;
         got.add(s);
-        store.results[s] = { v:normVerdict(r.verdict), r:String(r.reason || "").slice(0, 200), s:String(r.summary || "").slice(0, 900), at, n:normNews(r.news) || "neutral", rf:String(r.red_flag || "").slice(0, 160) };
+        store.results[s] = { v:normVerdict(r.verdict), r:String(r.reason || "").slice(0, 200), s:String(r.summary || "").slice(0, 900), at, n:normNews(r.news) || "neutral", rf:String(r.red_flag || "").slice(0, 160),
+          g:normGuide(r.guidance), gn:String(r.guidance_note || "").slice(0, 200), px:D(s).a ? D(s).a.price : null };
         D(s).scanAI = store.results[s]; touch(s);
       });
       KV.set("scanai", store);
@@ -1897,9 +1968,34 @@ function scanComplete(){
 function stocksPending(){ return scanList().filter(s => !(S.data[s] && (S.data[s].tdErr || (S.data[s].a && !S.data[s].a.tooShort)))).length; }
 function stocksScanned(){ return universe().filter(s => !isFund(s) && S.data[s] && S.data[s].a && !S.data[s].a.tooShort); }
 function topPicks(){
-  return stocksScanned().map(s => ({ s, a:S.data[s].a })).filter(x => x.a.verdict === "buy").sort((x,y) => y.a.score - x.a.score).slice(0, 5);
+  return stocksScanned().map(s => ({ s, a:S.data[s].a, fv:finalVerdict(s) })).filter(x => x.fv && x.fv.v === "buy").sort((x,y) => y.a.score - x.a.score).slice(0, 5);
 }
 const VERDICT = { buy:"Good buy", wait:"I would wait", not:"Not a good buy" };
+const VRANK = { not:0, wait:1, buy:2 }, RANKV = ["not", "wait", "buy"], AI_TO_RULE = { good_buy:"buy", wait:"wait", not_good:"not" };
+function freshAI(at){ return !!at && weekdaysAfter(etDateMs(at), today()) <= 3; }
+function finalVerdict(s){
+  const d = S.data[s]; if (!d || !d.a || d.a.tooShort) return null;
+  const a = d.a, votes = [{ src:"Chart score " + a.score, v:a.verdict }];
+  const notes = [];
+  const moved = px => px && Math.abs(a.price / px - 1) > 0.05 ? Math.round((a.price / px - 1) * 100) : null;
+  if (d.scanAI && freshAI(d.scanAI.at)){ votes.push({ src:"AI scan", v:AI_TO_RULE[d.scanAI.v] || "wait", at:d.scanAI.at }); const m = moved(d.scanAI.px); if (m) notes.push(`The price has moved ${m > 0 ? "+" : ""}${m}% since the AI scan, so its opinion may be out of date.`); }
+  if (d.ai && d.ai.r && freshAI(d.ai.at)){ votes.push({ src:"Detailed analysis", v:AI_TO_RULE[normVerdict(d.ai.r.verdict)] || "wait", at:d.ai.at }); const m = moved(d.ai.px); if (m) notes.push(`The price has moved ${m > 0 ? "+" : ""}${m}% since the detailed analysis.`); }
+  let v, why;
+  const ranks = votes.map(x => VRANK[x.v]);
+  if (votes.length === 1){ v = a.verdict; why = "Chart only, no AI review yet."; }
+  else if (votes.length === 2){
+    if (ranks[0] === ranks[1]){ v = votes[0].v; why = "The chart score and the AI agree."; }
+    else if (Math.abs(ranks[0] - ranks[1]) === 1){ v = RANKV[Math.min(ranks[0], ranks[1])]; why = "The chart score and the AI are one step apart, so the more cautious view wins."; }
+    else { v = "wait"; why = "Mixed signals: the chart score and the AI point in opposite directions."; }
+  } else {
+    const count = {}; votes.forEach(x => count[x.v] = (count[x.v] || 0) + 1);
+    const maj = Object.keys(count).find(k => count[k] >= 2);
+    if (maj){ v = maj; why = count[maj] === 3 ? "All three agree." : `Two of three say ${VERDICT[maj]}.`; }
+    else { v = "wait"; why = "Mixed signals: all three disagree."; }
+  }
+  if (v === "buy" && a.blockers.length){ v = "wait"; why += ` But deal-breakers can't be outvoted: ${a.blockers.map(b => b.why).join("; ")}.`; }
+  return { v, why, votes, notes };
+}
 const AI_VERDICT = { good_buy:"Good buy", wait:"I would wait", not_good:"Not a good buy" };
 const AI_BADGE = { good_buy:"b-buy", wait:"b-wait", not_good:"b-not" };
 const RULE_TO_AI = { buy:"good_buy", wait:"wait", not:"not_good" };
@@ -1908,7 +2004,8 @@ function badgeFor(s){
   if (!d || (!d.a && !d.tdErr)) return `<span class="badge b-pending">Loading…</span>`;
   if (d.tdErr) return `<span class="badge b-not">No data</span>`;
   if (d.a.tooShort) return `<span class="badge">Loading history</span>`;
-  return `<span class="badge b-${d.a.verdict}">${VERDICT[d.a.verdict]} <span style="opacity:.75">${d.a.score}</span></span>`;
+  const fv = finalVerdict(s) || { v:d.a.verdict };
+  return `<span class="badge b-${fv.v}">${VERDICT[fv.v]} <span style="opacity:.75">${d.a.score}</span></span>`;
 }
 
 /* ---- AI review of your trade journal ---- */
@@ -2039,7 +2136,7 @@ function renderTop5(){
     return;
   }
   if (!picks.length){
-    const close = stocksScanned().map(s => ({ s, a:S.data[s].a })).filter(x => x.a.verdict === "wait").sort((x,y) => y.a.score - x.a.score).slice(0, 5);
+    const close = stocksScanned().map(s => ({ s, a:S.data[s].a, fv:finalVerdict(s) })).filter(x => x.fv && x.fv.v === "wait").sort((x,y) => y.a.score - x.a.score).slice(0, 5);
     setHTML($("t5body"), `<div class="t5-empty">
       <p>${stillGoing ? "Still scoring. Picks appear here as stocks finish." : "No stocks rate as a good buy right now. That happens, and waiting is a position too."}</p>
       ${close.length ? `<p class="muted" style="font-size:14px">Closest to a buy:</p><div class="chips">${close.map(x => `<button class="chip" type="button" data-sym="${esc(x.s)}">${esc(x.s)} ${x.a.score}</button>`).join("")}</div>` : ""}
@@ -2090,22 +2187,26 @@ function renderDetail(){
   setHTML($("hHist"), hist ? `You've ${hist.currently_holding ? "got an open position in this stock" : "traded this stock before"}${hist.closed_trades ? `: ${hist.wins} win${hist.wins === 1 ? "" : "s"} in ${hist.closed_trades} closed trade${hist.closed_trades === 1 ? "" : "s"}, averaging ${fmtPct(hist.avg_return_pct,1)}` : ""}.` : "");
 
   const blank = msg => { setHTML($("verdict"), msg ? `<p class="muted">${esc(msg)}</p>` : ""); setHTML($("factors"), ""); setHTML($("calcOut"), ""); setHTML($("calcSugg"), ""); setHTML($("stats"), ""); setHTML($("aiBox"), ""); setHTML($("aiSummary"), ""); };
-  if (d.tdErr){ blank(d.tdErr); drawChart(null); renderNews(s); return; }
+  if (d.tdErr){ blank(d.tdErr); drawChart(null); renderNews(s); renderFin(s); return; }
   if (!a){ blank("Loading price history…"); drawChart(null); renderNews(s); return; }
   drawChart(s);
   if (a.tooShort){ blank(okDays() < SCORE_MIN_BARS ? `Price history is still downloading (${a.n || 0} of 60 days needed to score).` : "This stock has less than 60 days of trading history, so it can't be scored yet."); renderNews(s); return; }
 
-  const pos = Math.max(0, Math.min(100, a.score));
-  setHTML($("verdict"), `<div class="vblock v-${a.verdict}">
-    <div><div class="vnum">${a.score}</div><span class="vof">out of 100</span></div>
+  const pos = Math.max(0, Math.min(100, a.score)), fv = finalVerdict(s);
+  const scCls = a.score >= S.settings.rules.buyScore ? "sc-hi" : a.score >= 45 ? "sc-mid" : "sc-lo";
+  setHTML($("verdict"), `<div class="vblock v-${fv.v}">
+    <div><div class="vnum ${scCls}">${a.score}</div><span class="vof">chart score<br>out of 100</span></div>
     <div>
-      <div class="vlabel">${VERDICT[a.verdict]}</div>
-      <p class="vhead">${esc(a.headline)}</p>
-      ${a.verdict === "wait" ? `<p class="vwait"><b>Wait until</b> ${esc(a.waits.join(", and "))}.</p>` : ""}
-      <div class="gwrap"><div class="gauge" aria-hidden="true"><span style="width:44%;background:var(--down);opacity:.55"></span><span style="width:25%;background:var(--accent);opacity:.55"></span><span style="width:31%;background:var(--up);opacity:.55"></span></div>
+      <div class="vlabel">${VERDICT[fv.v]}</div>
+      <div class="votes">${fv.votes.map(x => `<span class="vote"><span class="muted">${esc(x.src)}${x.at ? `, ${new Date(x.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}` : ""}:</span> <b class="t-${x.v}">${VERDICT[x.v]}</b></span>`).join("")}</div>
+      <p class="vhead">${esc(fv.why)}</p>
+      ${a.held.length ? `<p class="vheld"><b>Score ${a.score}, held back by:</b> ${esc(a.held.join("; "))}.</p>` : ""}
+      ${fv.v === "wait" && a.blockers.length ? `<p class="vwait"><b>Wait until</b> ${esc(a.blockers.map(x => x.text).join(", and "))}.</p>` : fv.v === "wait" && a.verdict === "wait" ? `<p class="vwait"><b>Wait until</b> ${esc(a.waits.join(", and "))}.</p>` : ""}
+      ${fv.v === "not" ? `<p class="vwait">${esc(a.headline)}</p>` : ""}
+      ${fv.notes.map(n => `<p class="vnote">${esc(n)}</p>`).join("")}
+      <div class="gwrap"><div class="gauge" aria-hidden="true"><span style="width:44%;background:var(--down);opacity:.55"></span><span style="width:${S.settings.rules.buyScore - 45}%;background:var(--accent);opacity:.55"></span><span style="width:${101 - S.settings.rules.buyScore}%;background:var(--up);opacity:.55"></span></div>
       <div class="needle" style="left:${pos}%"></div></div>
-      <div class="glabels" aria-hidden="true"><span style="width:44%">Not a good buy</span><span style="width:25%">Wait</span><span style="width:31%">Good buy</span></div>
-      <p class="newslabel">${isFund(s) ? "" : a.newsAnalyzed ? `Includes AI news analysis from ${new Date(a.newsAt).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}.` : "First draft: the news hasn't been rated by AI yet. Run an AI scan to include it."}</p>
+      <p class="newslabel">${isFund(s) ? "" : a.newsAnalyzed ? `Chart score includes AI news analysis from ${new Date(a.newsAt).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}.` : "First draft: the news hasn't been rated by AI yet. Run an AI scan to include it."}</p>
     </div></div>`);
 
   setHTML($("factors"), a.F.map(f => {
@@ -2115,6 +2216,7 @@ function renderDetail(){
   }).join(""));
 
   renderCalc();
+  renderFin(s);
   renderSummary(s);
   renderAI(s);
   renderNews(s);
@@ -2172,15 +2274,18 @@ function renderEarnLine(s){
   setHTML(el, `<span class="${soon ? "down" : ""}"><b>Next earnings:</b> ${when} (${days <= 0 ? "today" : "in " + days + " day" + (days === 1 ? "" : "s")})${soon ? ". Inside a typical holding window." : ""}</span>`);
 }
 function renderSummary(s){
-  const sc = D(s).scanAI, el = $("aiSummary");
+  const d = D(s), sc = d.scanAI, el = $("aiSummary");
   if (!sc){
     setHTML(el, `<div class="ai-sum empty"><p class="muted">${isFund(s) ? "Funds aren't included in the AI scan." : "This stock isn't in your latest AI scan yet. Click Run AI scan on the main page, or use the button below for this stock alone."}</p></div>`);
     return;
   }
-  const a = D(s).a, agree = a && !a.tooShort ? (RULE_TO_AI[a.verdict] === sc.v ? "Agrees with the score." : "Disagrees with the score, which is worth a closer look.") : "";
+  const fresh = freshAI(sc.at), when = new Date(sc.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" });
+  const deep = d.ai && d.ai.r && freshAI(d.ai.at) ? normVerdict(d.ai.r.verdict) : null;
+  const clash = fresh && deep && deep !== sc.v;
   setHTML(el, `<div class="ai-sum">
-    <div class="ai-sum-head"><span class="badge ${AI_BADGE[sc.v]}">AI: ${AI_VERDICT[sc.v]}</span><span class="muted">From your AI scan, ${new Date(sc.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}. ${agree}</span></div>
-    <p>${esc(sc.s || sc.r)}</p></div>`);
+    <div class="ai-sum-head"><span class="src-tag">AI scan, ${when}</span><span class="badge ${AI_BADGE[sc.v]}">${AI_VERDICT[sc.v]}</span>${fresh ? "" : `<span class="muted">Older than 3 trading days, so it no longer counts toward the final verdict.</span>`}</div>
+    <p>${esc(sc.s || sc.r)}</p></div>
+    ${clash ? `<p class="clash"><b>These two AI opinions disagree.</b> The AI scan (${when}) says ${AI_VERDICT[sc.v]}; the detailed analysis (${new Date(d.ai.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}) says ${AI_VERDICT[deep]}. The final verdict at the top weighs both along with the chart score.</p>` : ""}`);
 }
 function renderAI(s){
   const d = D(s), box = $("aiBox");
@@ -2189,15 +2294,16 @@ function renderAI(s){
   let html = "";
   if (d.ai && d.ai.r){
     const r = d.ai.r, list = arr => Array.isArray(arr) && arr.length ? `<ul>${arr.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
-    const agree = d.a && !d.a.tooShort ? (RULE_TO_AI[d.a.verdict] === r.verdict ? "Agrees with the score." : "Disagrees with the score, which is worth a closer look.") : "";
+    const agree = d.a && !d.a.tooShort ? (RULE_TO_AI[d.a.verdict] === r.verdict ? "Agrees with the chart score." : "Disagrees with the chart score.") : "";
     html = `<div class="ai-box">
-      <div class="ai-box-top"><span class="ai-verdict" style="color:${r.verdict === "good_buy" ? "var(--up)" : r.verdict === "not_good" ? "var(--down)" : "var(--accent)"}">${esc(AI_VERDICT[r.verdict] || r.verdict)}</span><span class="muted" style="font-size:13px">Detailed analysis</span></div>
+      <div class="ai-box-top"><span class="src-tag">Detailed analysis, ${new Date(d.ai.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}</span>${freshAI(d.ai.at) ? "" : `<span class="muted" style="font-size:12px">Older than 3 trading days; no longer counted.</span>`}</div>
+      <div class="ai-verdict" style="color:${r.verdict === "good_buy" ? "var(--up)" : r.verdict === "not_good" ? "var(--down)" : "var(--accent)"}">${esc(AI_VERDICT[r.verdict] || r.verdict)}</div>
       <p style="margin:4px 0 0">${esc(r.headline)}</p>
       ${list(r.reasons)}
       ${r.wait_for ? `<p style="font-size:14px;margin:0 0 6px"><b>Wait for:</b> ${esc(r.wait_for)}</p>` : ""}
       ${Array.isArray(r.catalysts) && r.catalysts.length ? `<h4>Catalysts</h4>${list(r.catalysts)}` : ""}
       ${Array.isArray(r.risks) && r.risks.length ? `<h4>Risks</h4>${list(r.risks)}` : ""}
-      <div class="ai-foot"><span>${agree} News tone: ${esc(r.news_read || "unknown")}. Analyzed ${new Date(d.ai.at).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" })} with ${esc(MODEL_NAMES[d.ai.model] || d.ai.model)}.</span>
+      <div class="ai-foot"><span>${agree} News tone: ${esc(r.news_read || "unknown")}. Model: ${esc(MODEL_NAMES[d.ai.model] || d.ai.model)}.</span>
       <button class="linkbtn" type="button" data-act="ai">Run again</button></div>
     </div>`;
   } else {
@@ -2229,11 +2335,11 @@ function resultRows(){
   let rows = scanList().map(s => {
     const d = S.data[s] || {}, a = d.a && !d.a.tooShort ? d.a : null, c = changeOf(s);
     const en = d.earn && d.earn.next ? d.earn.next.date : null;
-    return { s, d, a, c, name:nameOf(s), sec:sectorOf(s), ai:d.scanAI || null, en, ed: en ? daysBetween(t, en) : null };
+    return { s, d, a, c, name:nameOf(s), sec:sectorOf(s), ai:d.scanAI || null, en, ed: en ? daysBetween(t, en) : null, fv: a ? finalVerdict(s) : null };
   });
   rows = rows.filter(r => {
     if (q && r.s.indexOf(q) !== 0 && r.name.toUpperCase().indexOf(q) < 0) return false;
-    if (f.verdict !== "all" && (!r.a || r.a.verdict !== f.verdict)) return false;
+    if (f.verdict !== "all" && (!r.fv || r.fv.v !== f.verdict)) return false;
     if (f.ai === "none" ? !!r.ai : (f.ai !== "all" && (!r.ai || r.ai.v !== f.ai))) return false;
     if (f.sector !== "all" && r.sec !== f.sector) return false;
     if (f.disagree && !(r.a && r.ai && RULE_TO_AI[r.a.verdict] !== r.ai.v)) return false;
@@ -2245,7 +2351,8 @@ function resultRows(){
   });
   const sc = r => r.a ? r.a.score : -1, aiRank = { good_buy:0, wait:1, not_good:2 };
   const sorts = {
-    score_desc:(x,y) => sc(y) - sc(x), score_asc:(x,y) => (x.a ? sc(x) : 999) - (y.a ? sc(y) : 999),
+    score_desc:(x,y) => sc(y) - sc(x),
+    final:(x,y) => ((y.fv ? VRANK[y.fv.v] : -1) - (x.fv ? VRANK[x.fv.v] : -1)) || sc(y) - sc(x), score_asc:(x,y) => (x.a ? sc(x) : 999) - (y.a ? sc(y) : 999),
     ai:(x,y) => ((x.ai ? aiRank[x.ai.v] : 3) - (y.ai ? aiRank[y.ai.v] : 3)) || sc(y) - sc(x),
     move:(x,y) => Math.abs(y.c.pct || 0) - Math.abs(x.c.pct || 0),
     m1:(x,y) => (y.a ? y.a.r20 : -9) - (x.a ? x.a.r20 : -9),
@@ -2262,14 +2369,14 @@ function renderResults(){
   $("resCount").textContent = `Showing ${rows.length} of ${total} stocks${al ? ` (the ${al.list.length} most traded, updated ${fmtDate(al.d)}, plus your own)` : ""}.` + (m ? ` AI results from your scan on ${new Date(m.at).toLocaleString([], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" })}.` : " No AI scan yet; run one from the Dashboard.");
   const secOpts = `<option value="all">All sectors</option>` + Object.keys(SECTORS).map(k => `<option value="${k}">${SECTORS[k]}</option>`).join("");
   if ($("fSector").options.length < 2) $("fSector").innerHTML = secOpts;
-  setHTML($("resTable"), `<thead><tr><th>Stock</th><th>Sector</th><th>Price</th><th>Today</th><th>Score</th><th>Verdict</th><th class="wide">AI verdict</th><th>Reward to risk</th><th>1 month</th><th>1 year</th><th>Next earnings</th></tr></thead>
+  setHTML($("resTable"), `<thead><tr><th>Stock</th><th>Sector</th><th>Price</th><th>Today</th><th>Score</th><th>Final verdict</th><th class="wide">AI scan</th><th>Reward to risk</th><th>1 month</th><th>1 year</th><th>Next earnings</th></tr></thead>
   <tbody>${rows.length ? rows.map(r => `<tr data-sym="${esc(r.s)}" tabindex="0">
     <td><span class="rs-sym">${esc(r.s)}</span><small>${esc(r.name)}</small></td>
     <td class="muted">${r.sec ? SECTORS[r.sec] : "–"}</td>
     <td>${fmt$(r.c.price)}</td>
     <td class="${r.c.stale ? "muted" : r.c.pct >= 0 ? "up" : "down"}" ${r.c.stale ? 'title="Previous trading day"' : ""}>${fmtPct(r.c.pct)}</td>
     <td class="rs-score">${r.a ? r.a.score : "–"}</td>
-    <td>${r.a ? `<span class="badge b-${r.a.verdict}">${VERDICT[r.a.verdict]}</span>` : r.d.tdErr ? `<span class="badge b-not">No data</span>` : `<span class="muted">Loading</span>`}</td>
+    <td>${r.fv ? `<span class="badge b-${r.fv.v}">${VERDICT[r.fv.v]}</span><small>Chart: ${VERDICT[r.a.verdict]}</small>` : r.d.tdErr ? `<span class="badge b-not">No data</span>` : `<span class="muted">Loading</span>`}</td>
     <td class="wide">${r.ai ? `<span class="badge ${AI_BADGE[r.ai.v]}">${AI_VERDICT[r.ai.v]}</span><small>${esc(r.ai.r)}</small>` : `<span class="muted">Not scanned</span>`}</td>
     <td>${r.a ? fmtN(r.a.rr,1) + ":1" : "–"}</td>
     <td class="${r.a && r.a.r20 >= 0 ? "up" : "down"}">${r.a ? fmtPct(r.a.r20*100,1) : "–"}</td>
@@ -2280,8 +2387,8 @@ function renderResults(){
 function downloadCSV(){
   const rows = resultRows();
   const q = v => { const t = v == null ? "" : String(v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
-  const head = ["Ticker","Company","Sector","Price","Today %","Score","Verdict","AI verdict","AI reason","AI summary","Reward to risk","Support","Resistance","Stop","Target","1 month %","1 year %","RSI","Next earnings"];
-  const lines = [head.join(",")].concat(rows.map(r => [r.s, r.name, r.sec ? SECTORS[r.sec] : "", r2(r.c.price), r2(r.c.pct), r.a ? r.a.score : "", r.a ? VERDICT[r.a.verdict] : "",
+  const head = ["Ticker","Company","Sector","Price","Today %","Score","Final verdict","Chart verdict","AI verdict","AI reason","AI summary","Reward to risk","Support","Resistance","Stop","Target","1 month %","1 year %","RSI","Next earnings"];
+  const lines = [head.join(",")].concat(rows.map(r => [r.s, r.name, r.sec ? SECTORS[r.sec] : "", r2(r.c.price), r2(r.c.pct), r.a ? r.a.score : "", r.fv ? VERDICT[r.fv.v] : "", r.a ? VERDICT[r.a.verdict] : "",
     r.ai ? AI_VERDICT[r.ai.v] : "", r.ai ? r.ai.r : "", r.ai ? r.ai.s : "", r.a ? r2(r.a.rr) : "", r.a ? r2(r.a.support) : "", r.a ? r2(r.a.resistance) : "", r.a ? r2(r.a.stop) : "", r.a ? r2(r.a.target) : "",
     r.a ? r2(r.a.r20*100) : "", r.a && r.a.r252 != null ? r2(r.a.r252*100) : "", r.a ? r2(r.a.rsi) : "", r.en || ""].map(q).join(",")));
   const blob = new Blob([lines.join("\n")], { type:"text/csv" });
@@ -2383,6 +2490,210 @@ function drawChart(s){
   }
 }
 
+/* ================= Company financials (from SEC filings via Finnhub) ================= */
+const CON = {
+  rev:["Revenues","RevenueFromContractWithCustomerExcludingAssessedTax","RevenueFromContractWithCustomerIncludingAssessedTax","SalesRevenueNet","SalesRevenueGoodsNet","SalesRevenueServicesNet","RevenuesNetOfInterestExpense","TotalRevenuesAndOtherIncome","RevenueNet"],
+  exp:["CostsAndExpenses","BenefitsLossesAndExpenses","OperatingCostsAndExpenses","CostsAndExpensesTotal"],
+  ni:["NetIncomeLoss","NetIncomeLossAttributableToParent","NetIncomeLossAvailableToCommonStockholdersBasic","ProfitLoss"],
+  op:["OperatingIncomeLoss"],
+  eps:["EarningsPerShareDiluted","EarningsPerShareBasicAndDiluted","EarningsPerShareBasic"],
+  ocf:["NetCashProvidedByUsedInOperatingActivities","NetCashProvidedByUsedInOperatingActivitiesContinuingOperations"],
+  capex:["PaymentsToAcquirePropertyPlantAndEquipment","PaymentsToAcquireProductiveAssets","PaymentsForCapitalImprovements","PaymentsToAcquirePropertyPlantAndEquipmentAndIntangibleAssets"],
+  eq:["StockholdersEquity","StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"]
+};
+function conceptMap(sec){
+  const m = {};
+  if (Array.isArray(sec)) sec.forEach(x => { if (!x || x.value == null || !isFinite(x.value)) return; const k = String(x.concept || "").replace(/^[^_:]*[_:]/, ""); if (!(k in m)) m[k] = +x.value; });
+  else if (sec && typeof sec === "object") Object.keys(sec).forEach(k => { const v = sec[k]; if (v != null && isFinite(v)) m[k.replace(/^[^_:]*[_:]/, "")] = +v; });
+  return m;
+}
+function parseReport(r){
+  const rep = r.report || {}, ic = conceptMap(rep.ic), cf = conceptMap(rep.cf), bs = conceptMap(rep.bs);
+  const pick = (m, names) => { for (const n of names) if (m[n] != null) return m[n]; return null; };
+  let debt = pick(bs, ["LongTermDebt","LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities","DebtLongtermAndShorttermCombinedAmount"]);
+  if (debt == null){
+    const nc = pick(bs, ["LongTermDebtNoncurrent","LongTermDebtAndCapitalLeaseObligations"]), cu = pick(bs, ["LongTermDebtCurrent","LongTermDebtAndCapitalLeaseObligationsCurrent","DebtCurrent"]);
+    if (nc != null || cu != null) debt = (nc || 0) + (cu || 0);
+  }
+  const st = (bs.ShortTermBorrowings || 0) + (bs.CommercialPaper || 0);
+  if (debt != null || st) debt = (debt || 0) + st;
+  return {
+    fy:r.year, fq:r.quarter, form:String(r.form || ""), start:String(r.startDate || "").slice(0, 10), end:String(r.endDate || "").slice(0, 10),
+    rev:pick(ic, CON.rev), exp:pick(ic, CON.exp), ni:pick(ic, CON.ni), op:pick(ic, CON.op), eps:pick(ic, CON.eps),
+    ocf:pick(cf, CON.ocf), capex:pick(cf, CON.capex), eq:pick(bs, CON.eq), debt
+  };
+}
+const isAnnualForm = f => /10-K|20-F|40-F/i.test(f);
+const FLOW = ["rev","exp","ni","op","eps","ocf","capex"];
+function buildQuarters(qRaw, aRaw){
+  const byFy = {};
+  qRaw.map(parseReport).forEach(r => {
+    const g = byFy[r.fy] || (byFy[r.fy] = {});
+    if (isAnnualForm(r.form)) g.a = g.a || r; else if (r.fq >= 1 && r.fq <= 3) g[r.fq] = r;
+  });
+  aRaw.map(parseReport).forEach(r => { const g = byFy[r.fy] || (byFy[r.fy] = {}); if (!g.a) g.a = r; });
+  const out = [];
+  Object.keys(byFy).map(Number).sort().forEach(fy => {
+    const g = byFy[fy], q = [g[1], g[2], g[3]];
+    // Detect year-to-date (cumulative) figures: 10-Q statements often report the year so far
+    const cumIC = !!(q[0] && q[1] && ((q[1].start && q[1].start === q[0].start) || (q[0].rev > 0 && q[1].rev > q[0].rev * 1.55)));
+    const cumCF = true;   // 10-Q cash flow statements are always year-to-date
+    const cumOf = k => ["ocf","capex"].includes(k) ? cumCF : cumIC;
+    const val = (n, k) => {
+      const r = q[n - 1]; if (!r || r[k] == null) return null;
+      if (n === 1 || !cumOf(k)) return r[k];
+      const p = q[n - 2]; return p && p[k] != null ? r[k] - p[k] : null;
+    };
+    for (let n = 1; n <= 3; n++){
+      const r = q[n - 1]; if (!r) continue;
+      const o = { fy, fq:n, end:r.end, eq:r.eq, debt:r.debt };
+      FLOW.forEach(k => o[k] = val(n, k));
+      out.push(o);
+    }
+    if (g.a && q[2]){
+      const o = { fy, fq:4, end:g.a.end, eq:g.a.eq, debt:g.a.debt, derived:true };
+      FLOW.forEach(k => {
+        if (g.a[k] == null) { o[k] = null; return; }
+        if (cumOf(k)) o[k] = q[2][k] != null ? g.a[k] - q[2][k] : null;
+        else { const parts = q.map(x => x && x[k]); o[k] = parts.every(v => v != null) ? g.a[k] - parts.reduce((s, v) => s + v, 0) : null; }
+      });
+      out.push(o);
+    }
+  });
+  return out.sort((a, b) => a.end < b.end ? -1 : 1);
+}
+function buildYears(aRaw, qRaw){
+  const seen = {}, out = [];
+  aRaw.concat(qRaw.filter(r => isAnnualForm(String(r.form || "")))).map(parseReport).forEach(r => { if (!seen[r.fy]){ seen[r.fy] = 1; out.push(r); } });
+  return out.sort((a, b) => a.end < b.end ? -1 : 1);
+}
+function finRow(r, label){
+  const expCalc = r.exp == null && r.rev != null && r.ni != null;
+  return { label, end:r.end, rev:r.rev, exp: r.exp != null ? r.exp : (expCalc ? r.rev - r.ni : null), expCalc, ni:r.ni, nm: r.rev && r.ni != null ? r.ni / r.rev * 100 : null, derived:!!r.derived };
+}
+async function loadFin(s){
+  const [q, a, e] = [await fh("stock/financials-reported", { symbol:s, freq:"quarterly" }), await fh("stock/financials-reported", { symbol:s, freq:"annual" }), await fh("stock/earnings", { symbol:s })];
+  const qRaw = (q && Array.isArray(q.data)) ? q.data : [], aRaw = (a && Array.isArray(a.data)) ? a.data : [];
+  const quarters = buildQuarters(qRaw, aRaw).slice(-9), years = buildYears(aRaw, qRaw).slice(-5);
+  const eps = (Array.isArray(e) ? e : []).filter(x => x && x.period).sort((x, y) => x.period < y.period ? -1 : 1).slice(-4)
+    .map(x => ({ period:x.period, q:x.quarter, y:x.year, act:num(x.actual), est:num(x.estimate), pct:num(x.surprisePercent) }));
+  D(s).fin = { d:today(), at:Date.now(), quarters, years, eps, none: !qRaw.length && !aRaw.length };
+  KV.set("fin." + s, D(s).fin);
+}
+function finStale(s){
+  const f = D(s).fin; if (!f) return true;
+  if (daysBetween(f.d, today()) > 7) return true;
+  const p = D(s).earn && D(s).earn.past && D(s).earn.past.length ? D(s).earn.past[D(s).earn.past.length - 1].date : null;
+  return !!(p && p > f.d);
+}
+
+/* ---- Drawing ---- */
+const fmtBig = v => { if (v == null || !isFinite(v)) return "–"; const a = Math.abs(v), sgn = v < 0 ? "−" : ""; return sgn + "$" + (a >= 1e12 ? (a/1e12).toFixed(2) + "T" : a >= 1e9 ? (a/1e9).toFixed(a >= 1e10 ? 1 : 2) + "B" : a >= 1e6 ? (a/1e6).toFixed(a >= 1e8 ? 0 : 1) + "M" : a >= 1e3 ? (a/1e3).toFixed(0) + "K" : a.toFixed(0)); };
+function qLabel(r){ return `Q${r.fq} FY${String(r.fy).slice(-2)}`; }
+function niceMax(v){ if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))), n = v / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
+function finChartSVG(rows){
+  const W = 640, H = 290, L = 64, R = 50, T = 26, B = 250, n = rows.length;
+  const vals = rows.flatMap(r => [r.rev, r.exp, r.ni]).filter(v => v != null);
+  if (!vals.length) return "";
+  const hiV = niceMax(Math.max(0, ...vals)), loV = Math.min(0, ...vals) < 0 ? -niceMax(-Math.min(...vals)) : 0;
+  const y = v => T + (hiV - v) / (hiV - loV) * (B - T);
+  const ms = rows.map(r => r.nm).filter(v => v != null);
+  const mHi = Math.max(10, ...ms.map(v => Math.ceil(v / 5) * 5)), mLo = Math.min(0, ...ms.map(v => Math.floor(v / 5) * 5));
+  const ym = v => T + (mHi - v) / (mHi - mLo) * (B - T);
+  const gw = (W - L - R) / n, bw = Math.min(26, gw * 0.22);
+  let g = "";
+  for (let i = 0; i <= 4; i++){ const v = loV + (hiV - loV) * i / 4, yy = y(v); g += `<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--rule)" stroke-width="1"/><text x="${L-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--muted)">${fmtBig(v)}</text>`; }
+  for (let i = 0; i <= 4; i++){ const v = mLo + (mHi - mLo) * i / 4; g += `<text x="${W-R+8}" y="${ym(v)+4}" font-size="11" fill="var(--accent)">${Math.round(v)}%</text>`; }
+  g += `<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)" stroke-width="1"/>`;
+  const pts = [];
+  rows.forEach((r, i) => {
+    const cx = L + gw * i + gw / 2;
+    const bar = (v, x, fill, name) => v == null ? "" : `<rect x="${x}" y="${Math.min(y(v), y(0))}" width="${bw}" height="${Math.max(1, Math.abs(y(v) - y(0)))}" rx="2" fill="${fill}"><title>${esc(r.label)}: ${name} ${fmtBig(v)}${name === "Expenses" && r.expCalc ? " (calculated as revenue minus net income)" : ""}</title></rect>`;
+    g += bar(r.rev, cx - bw * 1.5 - 3, "var(--ink)", "Revenue") + bar(r.exp, cx - bw / 2, "var(--muted)", "Expenses") + bar(r.ni, cx + bw / 2 + 3, r.ni >= 0 ? "var(--up)" : "var(--down)", "Net income");
+    g += `<text x="${cx}" y="${B + 20}" text-anchor="middle" font-size="12" fill="var(--ink)">${esc(r.label)}${r.derived ? "*" : ""}</text>`;
+    if (r.nm != null) pts.push([cx, ym(r.nm), r.nm]);
+  });
+  if (pts.length > 1) g += `<polyline points="${pts.map(p => p[0] + "," + p[1]).join(" ")}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 4"/>`;
+  pts.forEach(p => { g += `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="var(--accent)" stroke="var(--panel)" stroke-width="2"><title>Net margin ${fmtN(p[2],1)}%</title></circle><text x="${p[0]}" y="${p[1] - 10}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">${fmtN(p[2],1)}%</text>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" class="finsvg" role="img" aria-label="Revenue, expenses, net income and net margin">${g}</svg>`;
+}
+function epsChartSVG(eps){
+  const W = 640, H = 250, L = 56, R = 16, T = 34, B = 210, n = eps.length;
+  const vals = eps.flatMap(e => [e.act, e.est]).filter(v => v != null);
+  if (!vals.length) return "";
+  const hiV = Math.max(0, ...vals) * 1.15 || 1, loV = Math.min(0, ...vals) * 1.15;
+  const y = v => T + (hiV - v) / (hiV - loV || 1) * (B - T);
+  const gw = (W - L - R) / n, bw = Math.min(40, gw * 0.3);
+  let g = `<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)"/>`;
+  for (let i = 0; i <= 3; i++){ const v = loV + (hiV - loV) * i / 3; g += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">$${v.toFixed(2)}</text>`; }
+  eps.forEach((e, i) => {
+    const cx = L + gw * i + gw / 2, beat = e.act != null && e.est != null ? e.act >= e.est : null;
+    const pct = e.pct != null ? e.pct : (e.est ? (e.act - e.est) / Math.abs(e.est) * 100 : null);
+    const bar = (v, x, fill, name, stroke) => v == null ? "" : `<rect x="${x}" y="${Math.min(y(v), y(0))}" width="${bw}" height="${Math.max(1, Math.abs(y(v) - y(0)))}" rx="2" fill="${fill}" ${stroke ? `stroke="${stroke}" stroke-width="1.5"` : ""}><title>${name} $${v.toFixed(2)}</title></rect>`;
+    g += bar(e.est, cx - bw - 2, "none", "Expected", "var(--muted)") + bar(e.act, cx + 2, beat === false ? "var(--down)" : "var(--up)", "Actual");
+    if (beat != null) g += `<text x="${cx}" y="${T - 12}" text-anchor="middle" font-size="12" font-weight="700" fill="${beat ? "var(--up)" : "var(--down)"}">${beat ? "Beat" : "Missed"}${pct != null ? " by " + Math.abs(pct).toFixed(1) + "%" : ""}</text>`;
+    g += `<text x="${cx}" y="${B + 20}" text-anchor="middle" font-size="12" fill="var(--ink)">Q${e.q} ${e.y}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" class="finsvg" role="img" aria-label="Expected versus actual earnings per share">${g}</svg>`;
+}
+function fundTable(s){
+  const f = D(s).fin, qs = f.quarters;
+  if (qs.length < 2) return `<p class="hint">Not enough quarterly filings to show trends.</p>`;
+  const last = qs.slice(-4);
+  const prevYear = r => qs.find(x => x.fy === r.fy - 1 && x.fq === r.fq);
+  const rows = [
+    { name:"Net profit margin", fmt:v => fmtN(v,1) + "%", get:r => r.rev ? (r.ni != null ? r.ni / r.rev * 100 : null) : null, better:1 },
+    { name:"Operating margin", fmt:v => fmtN(v,1) + "%", get:r => r.rev && r.op != null ? r.op / r.rev * 100 : null, better:1 },
+    { name:"Revenue growth (vs a year earlier)", fmt:v => fmtPct(v,1), get:r => { const p = prevYear(r); return p && p.rev && r.rev != null ? (r.rev / p.rev - 1) * 100 : null; }, better:1 },
+    { name:"EPS growth (vs a year earlier)", fmt:v => fmtPct(v,1), get:r => { const p = prevYear(r); return p && p.eps && r.eps != null && p.eps > 0 ? (r.eps / p.eps - 1) * 100 : null; }, better:1 },
+    { name:"Free cash flow", fmt:v => fmtBig(v), get:r => r.ocf != null ? r.ocf - (r.capex || 0) : null, better:1 },
+    { name:"Debt to equity", fmt:v => fmtN(v,2), get:r => r.debt != null && r.eq > 0 ? r.debt / r.eq : null, better:-1 }
+  ];
+  const cell = (v, pv, better, fmt) => {
+    if (v == null) return `<td class="muted">–</td>`;
+    if (pv == null || Math.abs(v - pv) < 1e-9) return `<td class="flat">${fmt(v)}</td>`;
+    const up = v > pv, good = better > 0 ? up : !up;
+    return `<td class="${good ? "good" : "bad"}"><span aria-hidden="true">${up ? "▲" : "▼"}</span> ${fmt(v)}<span class="sr"> (${good ? "improved" : "worsened"})</span></td>`;
+  };
+  const guide = guidanceOf(s);
+  return `<div class="tablewrap"><table class="fundtable"><thead><tr><th></th>${last.map(r => `<th>${qLabel(r)}${r.derived ? "*" : ""}<small>ended ${fmtDate(r.end)}</small></th>`).join("")}</tr></thead><tbody>
+    ${rows.map(row => { const vals = last.map(row.get), prev = row.get(qs[qs.length - 5] || {}); return `<tr><th scope="row">${row.name}</th>${vals.map((v, i) => cell(v, i ? vals[i - 1] : (qs.length > 4 ? prev : null), row.better, row.fmt)).join("")}</tr>`; }).join("")}
+    <tr><th scope="row">Guidance (from recent news)</th><td colspan="${last.length}" class="${guide ? (guide.g === "raised" ? "good" : guide.g === "lowered" ? "bad" : "flat") : "muted"}" style="text-align:left">${guide ? `${guide.g === "raised" ? "▲ Raised" : guide.g === "lowered" ? "▼ Lowered" : guide.g === "maintained" ? "Kept the same" : "No guidance mentioned in recent headlines"}${guide.gn ? ": " + esc(guide.gn) : ""} <small>From the AI's read of headlines, ${fmtDate(etDateMs(guide.at))}.</small>` : "Run an AI scan or Analyze with AI to check recent headlines for guidance."}</td></tr>
+  </tbody></table></div>`;
+}
+function guidanceOf(s){
+  const d = D(s), a = d.scanAI && d.scanAI.g ? { g:d.scanAI.g, gn:d.scanAI.gn, at:d.scanAI.at } : null;
+  const b = d.ai && d.ai.r && d.ai.r.guidance ? { g:normGuide(d.ai.r.guidance), gn:String(d.ai.r.guidance_note || ""), at:d.ai.at } : null;
+  if (a && b) return a.at >= b.at ? a : b;
+  return a || b;
+}
+function renderFin(s){
+  const box = $("finBox"); if (!box) return;
+  if (isFund(s)){ setHTML(box, `<p class="hint" style="margin:0">Funds don't have company financial statements.</p>`); return; }
+  const f = D(s).fin;
+  if (!f || finStale(s)){ if (S.fh) fhTask("f:" + s, 0.2, () => loadFin(s)); if (!f){ setHTML(box, `<p class="hint" style="margin:0">Loading financial statements…</p>`); return; } }
+  if (f.none){ setHTML(box, `<p class="hint" style="margin:0">No SEC financial statements were found for this company. Companies based outside the US often file differently, so their numbers aren't available here.</p>`); return; }
+  const mode = S.finMode || "quarterly";
+  const rows = mode === "annual" ? f.years.slice(-5).map(r => finRow(r, "FY" + r.fy)) : f.quarters.slice(-5).map(r => finRow(r, qLabel(r)));
+  const anyCalc = rows.some(r => r.expCalc), anyDerived = rows.some(r => r.derived) || f.quarters.slice(-4).some(r => r.derived);
+  const chart = finChartSVG(rows);
+  const epsSvg = f.eps.length ? epsChartSVG(f.eps) : "";
+  const beats = f.eps.filter(e => e.act != null && e.est != null && e.act >= e.est).length, cnt = f.eps.filter(e => e.act != null && e.est != null).length;
+  setHTML(box, `
+    <div class="fin-head"><h4>Revenue, expenses and net income</h4>
+      <div class="seg" role="group" aria-label="Time frame"><button type="button" data-fin="quarterly" aria-pressed="${mode === "quarterly"}">Quarterly</button><button type="button" data-fin="annual" aria-pressed="${mode === "annual"}">Annual</button></div></div>
+    ${chart || `<p class="hint">This company's statements use a format the chart can't read.</p>`}
+    <div class="legend fin-legend"><span><i style="background:var(--ink)"></i>Revenue</span><span><i style="background:var(--muted)"></i>Expenses${anyCalc ? " (some calculated)" : ""}</span><span><i style="background:var(--up)"></i>Net income</span><span><i class="dot" style="background:var(--accent)"></i>Net margin (right scale)</span></div>
+    ${anyCalc ? `<p class="hint">Where a company doesn't report total expenses, they're calculated as revenue minus net income, which includes taxes and other items.</p>` : ""}
+    ${anyDerived ? `<p class="hint">* Fourth quarters are worked out as the full year minus the first three quarters, since companies don't file a separate Q4 report.</p>` : ""}
+    <h4 style="margin-top:20px">Earnings per share: expected vs. actual</h4>
+    ${epsSvg ? epsSvg + `<div class="legend fin-legend"><span><i style="background:none;border:1.5px solid var(--muted);height:8px"></i>Expected</span><span><i style="background:var(--up)"></i>Actual (red if missed)</span></div><p class="eps-sum">Beat estimates in ${beats} of the last ${cnt} quarter${cnt === 1 ? "" : "s"}.</p>` : `<p class="hint">No earnings estimates are available for this company.</p>`}
+    <h4 style="margin-top:20px">Fundamentals, last 4 quarters</h4>
+    <p class="hint" style="margin-top:0">Green improved from the quarter before; red got worse. For debt to equity, lower is better.</p>
+    ${fundTable(s)}
+    <p class="hint">From the company's SEC filings, via Finnhub. Updated ${fmtDate(f.d)}.</p>`);
+}
+
 /* ================= Trade journal ================= */
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 function saveTrades(){ LS.set("sd2.trades", S.trades); LS.set("sd2.tdel", S.tdel); syncSoon(); }
@@ -2412,7 +2723,8 @@ async function buildSnapshot(t){
   const date = t.buyAt.slice(0, 10), d = D(t.sym);
   if (!d.bars || d.bars.length < SCORE_MIN_BARS || !D("SPY").bars) return false;
   if (date === today() && d.a && !d.a.tooShort){
-    t.snap = Object.assign(snapFrom(d.a, ctxLive(t.sym), d.scanAI ? d.scanAI.v : null), { src:"live" });
+    const fv = finalVerdict(t.sym);
+    t.snap = Object.assign(snapFrom(d.a, ctxLive(t.sym), d.scanAI ? d.scanAI.v : null), { src:"live", fv: fv ? fv.v : d.a.verdict });
     return true;
   }
   const cut = b => b ? b.filter(x => x.t < date) : null;
@@ -2435,7 +2747,8 @@ async function buildSnapshot(t){
     }catch(e){}
   }
   const ctx = { bars, spyB, qqqB, sec, secB, earn, news, met:null, nai:null, asOf:date, live:false, M:computeMarketFrom(spyB, qqqB) };
-  t.snap = Object.assign(snapFrom(scoreFor(t.sym, ctx), ctx, null), { src:"rebuilt" });
+  const ra = scoreFor(t.sym, ctx);
+  t.snap = Object.assign(snapFrom(ra, ctx, null), { src:"rebuilt", fv:ra.verdict });
   return true;
 }
 let snapBusy = false;
@@ -2470,7 +2783,7 @@ function journalStats(){
 const heldEarn = t => { const s = t.snap; return !!(s && s.earnDate && s.earnDate >= t.buyAt.slice(0, 10) && s.earnDate <= (t.sellAt || "9999").slice(0, 10)); };
 const DIMENSIONS = [
   { key:"score", label:"Score when you bought", groups:[["70 or higher", s => s.score >= 70], ["45 to 69", s => s.score >= 45 && s.score < 70], ["Below 45", s => s.score < 45]] },
-  { key:"verdict", label:"Site verdict when you bought", groups:[["Good buy", s => s.verdict === "buy"], ["I would wait", s => s.verdict === "wait"], ["Not a good buy", s => s.verdict === "not"]] },
+  { key:"verdict", label:"Final verdict when you bought", groups:[["Good buy", s => (s.fv || s.verdict) === "buy"], ["I would wait", s => (s.fv || s.verdict) === "wait"], ["Not a good buy", s => (s.fv || s.verdict) === "not"]] },
   { key:"support", label:"Distance from support", groups:[["Near support (within 1.5× daily range)", s => s.dist != null && s.dist <= 1.5], ["Farther from support", s => s.dist != null && s.dist > 1.5]] },
   { key:"earn", label:"Earnings during the trade", groups:[["Held through earnings", (s, t) => heldEarn(t)], ["No earnings during the trade", (s, t) => !heldEarn(t)]] },
   { key:"market", label:"Market when you bought", groups:[["SPY above its 50-day", s => s.mkt === true], ["SPY below its 50-day", s => s.mkt === false]] },
@@ -2511,7 +2824,7 @@ function myPatterns(){
 function tradeFacts(t){
   const c = tradeCalc(t), s = t.snap || {};
   return { stock:t.sym, bought:t.buyAt.slice(0, 10), sold:t.sellAt ? t.sellAt.slice(0, 10) : null, return_pct:r2(c.pct), vs_spy_pct:r2(c.vsSpy), days_held:c.days, note:t.note || undefined,
-    at_purchase: s.score != null ? { score:s.score, verdict:s.verdict, dist_from_support_x_range:s.dist, rsi:s.rsi, reward_to_risk:s.rr, earnings_during_trade:heldEarn(t), spy_above_50_day:s.mkt, sector_points_of_7:s.sec, news:s.news || (s.n7 != null ? s.n7 + " stories that week" : null), ai_verdict:s.ai, headlines:s.heads } : "not available" };
+    at_purchase: s.score != null ? { score:s.score, final_verdict:s.fv || s.verdict, chart_verdict:s.verdict, dist_from_support_x_range:s.dist, rsi:s.rsi, reward_to_risk:s.rr, earnings_during_trade:heldEarn(t), spy_above_50_day:s.mkt, sector_points_of_7:s.sec, news:s.news || (s.n7 != null ? s.n7 + " stories that week" : null), ai_verdict:s.ai, headlines:s.heads } : "not available" };
 }
 function suggestions(){
   const closed = S.trades.filter(t => t.sellPx && t.snap && t.snap.score != null).map(t => ({ t, s:t.snap, c:tradeCalc(t) }));
@@ -2544,11 +2857,11 @@ function suggestions(){
 function tradeAlerts(){
   const out = [], dismissed = LS.get("sd2.dismissed", {});
   S.trades.filter(t => !t.sellPx).forEach(t => {
-    const px = priceNow(t.sym), a = S.data[t.sym] && S.data[t.sym].a; if (px == null) return;
+    const px = priceNow(t.sym), a = S.data[t.sym] && S.data[t.sym].a, fv = finalVerdict(t.sym); if (px == null) return;
     const push = (kind, cls, msg) => { const key = `${t.id}:${kind}:${kind === "not" ? "" : (kind === "stop" ? t.stop : t.target)}`; if (!dismissed[key]) out.push({ key, kind, cls, msg, id:t.id }); };
     if (t.stop && px <= t.stop) push("stop", "err", `${t.sym} fell to your stop of ${fmt$(t.stop)} (now ${fmt$(px)}, ${fmtPct((px / t.buyPx - 1) * 100, 1)} from your purchase).`);
     if (t.target && px >= t.target) push("target", "good", `${t.sym} reached your target of ${fmt$(t.target)} (now ${fmt$(px)}, ${fmtPct((px / t.buyPx - 1) * 100, 1)} from your purchase).`);
-    if (a && !a.tooShort && a.verdict === "not") push("not", "err", `${t.sym}'s verdict dropped to Not a good buy (score ${a.score}). Worth a look at the chart.`);
+    if (fv && fv.v === "not") push("not", "err", `${t.sym}'s final verdict dropped to Not a good buy (chart score ${a.score}). Worth a look at the chart.`);
   });
   return out;
 }
@@ -2670,14 +2983,14 @@ function renderTrades(){
   const alertIds = new Set(tradeAlerts().map(a => a.id));
   const open = S.trades.filter(t => !t.sellPx).slice().reverse(), closed = S.trades.filter(t => t.sellPx).slice().sort((a, b) => a.sellAt < b.sellAt ? 1 : -1);
   const dt = v => new Date(v).toLocaleString([], { month:"short", day:"numeric", year:"2-digit", hour:"numeric", minute:"2-digit" });
-  const snapTag = t => !t.snap ? `<small class="muted">Snapshot loading…</small>` : t.snap.score == null ? `<small class="muted">Not enough history for a snapshot</small>` : `<small>Score ${t.snap.score} (${VERDICT[t.snap.verdict]})${t.snap.src === "rebuilt" ? ", rebuilt" : ""}</small>`;
+  const snapTag = t => !t.snap ? `<small class="muted">Snapshot loading…</small>` : t.snap.score == null ? `<small class="muted">Not enough history for a snapshot</small>` : `<small>Score ${t.snap.score} (${VERDICT[t.snap.fv || t.snap.verdict]})${t.snap.src === "rebuilt" ? ", rebuilt" : ""}</small>`;
   setHTML($("jOpen"), open.length ? `<table class="jtable"><thead><tr><th>Stock</th><th>Bought</th><th>Shares</th><th>Buy price</th><th>Now</th><th>Profit or loss</th><th>Stop</th><th>Target</th><th>Verdict now</th><th></th></tr></thead><tbody>${open.map(t => {
     const c = tradeCalc(t), a = S.data[t.sym] && S.data[t.sym].a;
     return `<tr class="${alertIds.has(t.id) ? "flag" : ""}"><td><button class="secname" type="button" data-sym="${esc(t.sym)}">${esc(t.sym)}<small>${esc(nameOf(t.sym))}</small></button></td>
       <td>${dt(t.buyAt)}${snapTag(t)}</td><td>${fmtN(c.shares, c.shares % 1 ? 3 : 0)}</td><td>${fmt$(t.buyPx)}</td><td>${fmt$(c.px)}</td>
       <td class="${c.pl >= 0 ? "up" : "down"}">${c.pl == null ? "–" : (c.pl >= 0 ? "+" : "−") + fmt$(Math.abs(c.pl))}<small>${fmtPct(c.pct,1)}</small></td>
       <td>${t.stop ? fmt$(t.stop) : "–"}</td><td>${t.target ? fmt$(t.target) : "–"}</td>
-      <td>${a && !a.tooShort ? `<span class="badge b-${a.verdict}">${VERDICT[a.verdict]}</span>` : "–"}</td>
+      <td>${badgeFor(t.sym)}</td>
       <td class="acts"><button class="btn small" type="button" data-sell="${t.id}">Sell</button><button class="linkbtn" type="button" data-edit="${t.id}">Edit</button></td></tr>`;
   }).join("")}</tbody></table>` : `<p class="hint">No open trades. Click Log a trade to add one, or use Log a purchase on any stock's page.</p>`);
 
@@ -2778,9 +3091,9 @@ function deleteTrade(){
 }
 function downloadTradesCSV(){
   const q = v => { const t = v == null ? "" : String(v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
-  const head = ["Ticker","Bought","Buy price","Amount","Shares","Sold","Sell price","Profit or loss $","Return %","vs SPY %","Days held","Stop","Target","Score at purchase","Verdict at purchase","Note"];
+  const head = ["Ticker","Bought","Buy price","Amount","Shares","Sold","Sell price","Profit or loss $","Return %","vs SPY %","Days held","Stop","Target","Score at purchase","Final verdict at purchase","Note"];
   const lines = [head.join(",")].concat(S.trades.map(t => { const c = tradeCalc(t), s = t.snap || {};
-    return [t.sym, t.buyAt.replace("T"," "), t.buyPx, t.amount, r2(c.shares), t.sellAt ? t.sellAt.replace("T"," ") : "", t.sellPx || "", r2(c.pl), r2(c.pct), r2(c.vsSpy), c.days, t.stop || "", t.target || "", s.score != null ? s.score : "", s.verdict ? VERDICT[s.verdict] : "", t.note || ""].map(q).join(","); }));
+    return [t.sym, t.buyAt.replace("T"," "), t.buyPx, t.amount, r2(c.shares), t.sellAt ? t.sellAt.replace("T"," ") : "", t.sellPx || "", r2(c.pl), r2(c.pct), r2(c.vsSpy), c.days, t.stop || "", t.target || "", s.score != null ? s.score : "", (s.fv || s.verdict) ? VERDICT[s.fv || s.verdict] : "", t.note || ""].map(q).join(","); }));
   const blob = new Blob([lines.join("\n")], { type:"text/csv" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `swing-desk-trades-${today()}.csv`;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -2865,6 +3178,8 @@ $("lookInput").addEventListener("keydown", e => { if (e.key === "Enter") lookup(
 $("sortSel").addEventListener("change", renderWatch);
 $("btnWatch").addEventListener("click", toggleWatch);
 document.addEventListener("click", e => {
+  const fin = e.target.closest("[data-fin]");
+  if (fin){ S.finMode = fin.dataset.fin; renderFin(S.selected); return; }
   const tr = e.target.closest("[data-sell],[data-edit],[data-trade],[data-dismiss],[data-rule]");
   if (tr){
     if (tr.dataset.sell) openTrade({ id:tr.dataset.sell, sell:true });
